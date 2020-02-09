@@ -1,0 +1,8 @@
+{
+  "top_react":"//span[text()[contains(.,'Top Reactions')]]",
+  "newest":"//span[text()[contains(.,'Newest Reactions')]]",
+  "title":"//h1[@class='D(ib) Fz(18px)']",
+  "index":"//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']",
+  "movement":"//span[@class='Trsdu(0.3s) Fw(500) Pstart(10px) Fz(24px) C($dataRed)']",
+  "comment_timestamp":"//span[@class='C($c-fuji-grey-g) Fz(12px)']//span"
+}
