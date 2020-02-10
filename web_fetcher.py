@@ -18,17 +18,14 @@ def yahoo_finance_top_comments_fetcher(*, web_links: list):
         driver.get(web_link)
 
         # comments_xp = "//div[text()[contains(., 'react-text')]]"
-        comment_timestamp_xp = "//span[@class='C($c-fuji-grey-g) Fz(12px)']//span"
         comments_xp = "//div[@class='Wow(bw)']//div[@class='C($c-fuji-grey-l) Mb(2px) Fz(14px) Lh(20px) Pend(8px)']"
         # comments_xp = "//div[@class='Wow(bw)']//div[@class='canvass-see-more']/div/div"
 
         try:
-            element = WebDriverWait(driver, 20).until(
-                EC.presence_of_element_located((By.XPATH, xp_elems["top_react"]))
-            )
+            WebDriverWait(driver, 20).until(EC.presence_of_element_located(
+                                            (By.XPATH, xp_elems["top_react"])))
 
             print("="*30)
-            print(xp_elems["title"])
             print(f'\nTitle: {driver.find_element_by_xpath(xp_elems["title"]).text}')
             print(f'Index: {driver.find_element_by_xpath(xp_elems["index"]).text}')
             print(f'Movement: {driver.find_element_by_xpath(xp_elems["movement"]).text}')
@@ -50,7 +47,6 @@ def yahoo_finance_top_comments_fetcher(*, web_links: list):
             #     print(f'{time_stamp.text}: {comment.text}\n')
         finally:
             print("="*30)
-            time.sleep(3)
             driver.quit()
 
 if __name__ == '__main__':
