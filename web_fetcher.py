@@ -38,12 +38,12 @@ def yahoo_finance_top_comments_fetcher(*, web_links: list):
             driver.find_element_by_xpath(xp_elems["newest"]).click()
 
             time.sleep(10)
-            time_stamps = driver.find_elements_by_xpath(xp_elems["comment_timestamp"])
-            for time_stamp in time_stamps[:8]:
-                print(time_stamp.text)
-            print("\n")
+            # time_stamps = driver.find_elements_by_xpath(xp_elems["comment_timestamp"])
+            # for time_stamp in time_stamps[:8]:
+            #     print(time_stamp.text)
+            # print("\n")
             comments = driver.find_elements_by_xpath(comments_xp)
-            for comment in comments[:8]:
+            for comment in comments[:10]:
                 print(comment.text, "\n")
 
             # for time_stamp, comment in list(zip(time_stamps, comments))[0:10]:
