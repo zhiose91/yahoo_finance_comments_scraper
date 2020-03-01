@@ -6,13 +6,5 @@
   "movement":"//span[@class='Trsdu(0.3s) Fw(500) Pstart(10px) Fz(24px) C($dataRed)']",
 
   "comment_list": "//ul[@class='comments-list List(n) Ovs(touch) Pos(r) Mstart(-12px) Pt(5px)']",
-  "show_more": "//span[@data-reactid='650']",
-
-  "user_tag": {"class": "D(ib) Fw(b) P(0) Bd(0) M(0) Mend(10px) Fz(14px) Ta(start) C($c-fuji-blue-1-a)"},
-  "time_stamp": {"class": "C($c-fuji-grey-g) Fz(12px)"},
-
-  "comment_block": {"class": "comment Pend(2px) Mt(5px) P(12px)"},
-
-  "thumb_up_block": {"class": "O(n):h O(n):a  Bgc(t) Bdc(t) M(0) P(0) Bd(n) Mend(12px)"},
-  "thumb_up_ct": {"class": "D(ib) Mstart(4px) Va(m) Fz(12px) C($c-fuji-grey-g)"}
+  "show_more": "//span[text()[contains(.,'Show more')]]"
 }
