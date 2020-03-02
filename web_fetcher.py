@@ -12,8 +12,8 @@ import re
 class YF_comments_analyzer:
 
     def __init__(self):
-        self.xp_elems = json_reader(file_name="xp_elems.json")
-        self.soup_elems = json_reader(file_name="soup_elems.json")
+        self.xp_elems = json_reader(file_name=r"json/xp_elems.json")
+        self.soup_elems = json_reader(file_name=r"json/soup_elems.json")
 
     def set_up_driver_options(self):
         self.options = webdriver.ChromeOptions()
@@ -45,8 +45,8 @@ class YF_comments_analyzer:
 
     def print_stock_info(self):
         print(f'\nTitle: {self.driver.find_element_by_xpath(self.xp_elems["title"]).text}')
-        print(f'Index: {self.driver.find_element_by_xpath(self.xp_elems["index"]).text}')
-        print(f'Movement: {self.driver.find_element_by_xpath(self.xp_elems["movement"]).text}')
+        # print(f'Index: {self.driver.find_element_by_xpath(self.xp_elems["index"]).text}')
+        # print(f'Movement: {self.driver.find_element_by_xpath(self.xp_elems["movement"]).text}')
 
     def get_comment_block_list(self):
         print("\nComments within past 24 hours\n")
@@ -68,8 +68,12 @@ class YF_comments_analyzer:
                 print("+"*80)
                 print(f"[{user.text}] [{time_stamp.text}] [{thumb_up_ct}-Up][{thumb_down_ct}-Down]")
                 for comment_text in comment_texts:
-                    print(comment_text.text)
                     self.comment_text_list.append(comment_text.text)
+                    # try:
+                    #     print(comment_text.text)
+                    # except:
+                    #     print("The comment contains utf-8 character and will not be displayed")
+
 
     @classmethod
     def get_vote_ct(self, comment_block_html, vote):
@@ -119,7 +123,7 @@ class YF_comments_analyzer:
 
 if __name__ == '__main__':
     # download_driver()
-    web_links = json_reader(file_name="web_links.json")
+    web_links = json_reader(file_name=r"json/web_links.json")
     analyzer = YF_comments_analyzer()
     for link in web_links:
         analyzer.fetch_data(link)
