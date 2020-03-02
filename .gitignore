@@ -3,4 +3,5 @@
 *.pyc
 __pycache__
 test_input.txt
-web_fetcher0.py
+web_fetcher_dirty.py
+word_map.py
