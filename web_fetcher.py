@@ -95,8 +95,8 @@ class YF_comments_analyzer:
         for word in ("market", "week", "tsla", "going", "tesla", "https", "http", "stock"):
             words_block = words_block.replace(word, "")
 
-        wc1 = wc().generate(words_block)
-        plt.imshow(wc1)
+        wc1 = wc(max_words=200, background_color="white").generate(words_block)
+        plt.imshow(wc1, interpolation="bilinear")
         plt.axis("off")
         plt.show()
 
