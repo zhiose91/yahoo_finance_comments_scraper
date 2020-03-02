@@ -7,4 +7,3 @@ class Comment():
         self.user = user
         self.time_stamp = time_stamp
         self.comment_text = comment_text
-        

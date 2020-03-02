@@ -16,7 +16,7 @@ def get_vote_ct(comment_block_html, vote):
         return int(thumb_se.group(1))
     return 0
 
-def yahoo_finance_top_comments_fetcher(*, web_links: list):
+def YF_comments_fetcher(*, web_links: list):
     xp_elems = json_reader(file_name="xp_elems.json")
     soup_elems = json_reader(file_name="soup_elems.json")
 
@@ -59,7 +59,7 @@ def yahoo_finance_top_comments_fetcher(*, web_links: list):
             comment_list_soup = BeautifulSoup(comment_list_html, 'html.parser')
             comment_block_list = comment_list_soup.find_all("li", soup_elems["comment_block"])
 
-
+            comment_text_list = []
 
             for comment_block in comment_block_list:
                 user = comment_block.find("button", soup_elems["user_tag"])
@@ -74,14 +74,18 @@ def yahoo_finance_top_comments_fetcher(*, web_links: list):
                     print(f"[{user.text}] [{time_stamp.text}] [{thumb_up_ct}-Up][{thumb_down_ct}-Down]")
                     for comment_text in comment_texts:
                         print(comment_text.text)
+                        comment_text_list.append(comment_text.text)
             # ------------------------------------------------------------------
 
 
         finally:
             print("="*80)
             driver.quit()
+            return comment_text_list
 
 if __name__ == '__main__':
     # download_driver()
     web_links = json_reader(file_name="web_links.json")
-    yahoo_finance_top_comments_fetcher(web_links=web_links)
+    comments = YF_comments_fetcher(web_links=web_links)
+    with open("test_input.txt", "w") as write_file:
+        write_file.write(" ".join(comments))
