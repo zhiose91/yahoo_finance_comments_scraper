@@ -37,7 +37,7 @@ class YF_comments_analyzer:
 
     def driver_select_newest(self):
         """Waiting for Top React element to show up and changing filter to Newest"""
-        WebDriverWait(self.driver, 30).until(
+        WebDriverWait(self.driver, 100).until(
             EC.presence_of_element_located((By.XPATH, self.xp_elems["top_react"]))
         )
         self.driver.find_element_by_xpath(self.xp_elems["top_react"]).click()
@@ -88,7 +88,7 @@ class YF_comments_analyzer:
                 print(f"[{user.text}] [{time_stamp.text}] [{thumb_up_ct}-Up][{thumb_down_ct}-Down]")
                 for comment_text in comment_texts:
                     self.comment_text_list.append(comment_text.text)
-                    print(comment_text.text)
+                    print(repr(comment_text.text))
 
     @classmethod
     def get_vote_ct(self, comment_block_html, vote):
