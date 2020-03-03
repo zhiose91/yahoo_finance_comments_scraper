@@ -1,6 +1,7 @@
 from src.misc import json_reader
 from src.chrome_utils import download_driver
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -26,7 +27,12 @@ class YF_comments_analyzer:
 
     def driver_get_link(self, web_link):
         """Launching the driver with options and loading assigned link"""
-        self.driver = webdriver.Chrome(chrome_options=self.options)
+        try:
+            self.driver = webdriver.Chrome(chrome_options=self.options)
+        except WebDriverException:
+            download_driver()
+            self.driver = webdriver.Chrome(chrome_options=self.options)
+
         self.driver.get(web_link)
 
     def driver_select_newest(self):
@@ -40,12 +46,15 @@ class YF_comments_analyzer:
 
     def driver_load_all(self):
         """Clicking on Show More button to load all the comments within past 24 hrs"""
+        print("*"*80)
+        print("Clicking [Show More] : ", end="")
         while not self.driver.find_elements_by_xpath(self.xp_elems["old_time_stamp"]):
             WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, self.xp_elems["show_more"]))
             )
             self.driver.find_element_by_xpath(self.xp_elems["show_more"]).click()
-            print("Clicking [Show More] to load more comments")
+            print("~", end="")
+        print("")
         time.sleep(5)
 
     def print_stock_info(self):
@@ -79,12 +88,7 @@ class YF_comments_analyzer:
                 print(f"[{user.text}] [{time_stamp.text}] [{thumb_up_ct}-Up][{thumb_down_ct}-Down]")
                 for comment_text in comment_texts:
                     self.comment_text_list.append(comment_text.text)
-                    # Getting OSError due to that console is not able to print specific character
-                    # try:
-                    #     print(comment_text.text)
-                    # except OSError:
-                    #     print("The comment contains utf-8 character and will not be displayed")
-
+                    print(comment_text.text)
 
     @classmethod
     def get_vote_ct(self, comment_block_html, vote):

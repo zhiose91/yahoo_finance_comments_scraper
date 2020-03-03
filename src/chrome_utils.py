@@ -6,7 +6,9 @@ from contextlib import closing
 import zipfile
 
 def download_driver():
-    print("Initialize downloading driver", end = " ")
+    """Downloading chromedriver.exe with corresponding version"""
+
+    print("Initialize downloading driver:", end = " ")
     driver_API = "https://chromedriver.storage.googleapis.com"
     zip_name = "chromedriver_win32.zip"
     chrome_folder = r"C:\Program Files (x86)\Google\Chrome\Application"
