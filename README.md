@@ -63,7 +63,7 @@ python web_fetcher.py
 
 ## License
 
-This project is licensed under the MIT License - see the  [LICENSE.txt](https://gist.github.com/PurpleBooth/LICENSE.md)  file for details
+This project is licensed under the MIT License - see the [LICENSE.txt](https://github.com/zhiose91/web_fetcher/blob/master/LICENSE.txt)  file for details
 
 ## Acknowledgments
 
