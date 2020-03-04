@@ -6,10 +6,12 @@ This script can be use to scrap newest Yahoo Finance comments within past 24 hou
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
-
+Requirements
 ```
 Python 3.6 and up
+```
+Modules
+```
 beautifulsoup4==4.8.2
 bs4==0.0.1
 certifi==2019.11.28
@@ -30,6 +32,11 @@ soupsieve==2.0
 urllib3==1.25.8
 wordcloud==1.6.0
 ```
+Additional file - auto download for Windows users - [Link](https://chromedriver.chromium.org/downloads)
+```
+chromedriver
+```
+
 
 ### Installing
 
