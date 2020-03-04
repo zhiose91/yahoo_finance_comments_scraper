@@ -57,12 +57,15 @@ class YF_comments_analyzer:
         print("")
         time.sleep(5)
 
-    def print_stock_info(self):
+    def get_stock_info(self):
         """Printing stock information including name, index, and movement"""
+        self.title = self.driver.find_element_by_xpath(self.xp_elems["title"]).text
+        self.index = self.driver.find_element_by_xpath(self.xp_elems["index"]).text
+        self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
         print("*"*80)
-        print(f'Title: {self.driver.find_element_by_xpath(self.xp_elems["title"]).text}')
-        print(f'Index: {self.driver.find_element_by_xpath(self.xp_elems["index"]).text}')
-        print(f'Movement: {self.driver.find_element_by_xpath(self.xp_elems["movement"]).text}')
+        print(f'Title: {self.title}')
+        print(f'Index: {self.index}')
+        print(f'Movement: {self.movement}')
         print("*"*80)
 
     def get_comment_block_list(self):
@@ -129,6 +132,7 @@ class YF_comments_analyzer:
         wc1 = wc(max_words=200, background_color="white").generate(words_block)
         plt.imshow(wc1, interpolation="bilinear")
         plt.axis("off")
+        plt.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
         plt.show()
 
 
@@ -140,7 +144,7 @@ class YF_comments_analyzer:
             self.driver_get_link(link)
             self.driver_select_newest()
             self.driver_load_all()
-            self.print_stock_info()
+            self.get_stock_info()
             self.get_comment_block_list()
             self.comment_text_list = []
             self.get_comment_info()
