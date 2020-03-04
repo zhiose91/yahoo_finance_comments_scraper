@@ -68,3 +68,4 @@ This project is licensed under the MIT License - see the [LICENSE.txt](https://g
 ## Acknowledgments
 
 -   [CUNY_Data_Challenge_word_cloud_tutorial](https://www.kaggle.com/jelkinp72/cuny-data-challenge-word-cloud-tutorial)
+- [PurpleBooth/README-Template.md](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
