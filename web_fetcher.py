@@ -101,19 +101,29 @@ class YF_comments_analyzer:
 
     def draw_word_map(self):
         """Generating word map using the stored comments"""
-        from nltk.corpus import stopwords
         from nltk.tokenize import wordpunct_tokenize
         from wordcloud import WordCloud as wc
         import matplotlib.pyplot as plt
+        try:
+            from nltk.corpus import stopwords
+        except LookupError:
+            nltk.download('stopwords')
+            from nltk.corpus import stopwords
+
+        # some words can be ignored, stock name and abbreviation are recommended
+        # to ignore when analyzing indivdual stock
+        ignore_words = [
+            "https", "http", "stock", "market", "week", "going", "people"
+        ]
 
         comments = " ".join(self.comment_text_list)
-        stop = set(stopwords.words('english'))
+        _stopwords = set(stopwords.words('english'))
         list_of_words = [i.lower() for i in wordpunct_tokenize(comments)
-            if i.lower() not in stop and i.isalpha()]
+            if i.lower() not in _stopwords and i.isalpha()]
 
         words_block = " ".join(list_of_words)
 
-        for word in ("market", "week", "tsla", "going", "tesla", "https", "http", "stock"):
+        for word in ignore_words:
             words_block = words_block.replace(word, "")
 
         wc1 = wc(max_words=200, background_color="white").generate(words_block)
