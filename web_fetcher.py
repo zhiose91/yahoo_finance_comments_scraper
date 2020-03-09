@@ -107,11 +107,9 @@ class YF_comments_analyzer:
         from nltk.tokenize import wordpunct_tokenize
         from wordcloud import WordCloud as wc
         import matplotlib.pyplot as plt
-        try:
-            from nltk.corpus import stopwords
-        except LookupError:
-            nltk.download('stopwords')
-            from nltk.corpus import stopwords
+        import nltk
+        nltk.download('stopwords')
+        from nltk.corpus import stopwords
 
         # some words can be ignored, stock name and abbreviation are recommended
         # to ignore when analyzing indivdual stock
