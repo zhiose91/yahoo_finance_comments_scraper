@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
+from itertools import count
 import time
 import re
 
@@ -47,14 +48,13 @@ class YF_comments_analyzer:
     def driver_load_all(self):
         """Clicking on Show More button to load all the comments within past 24 hrs"""
         print("*"*80)
-        print("Clicking [Show More] : ", end="")
+        click_num = count(start=1, step=1)
         while not self.driver.find_elements_by_xpath(self.xp_elems["old_time_stamp"]):
             WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, self.xp_elems["show_more"]))
             )
             self.driver.find_element_by_xpath(self.xp_elems["show_more"]).click()
-            print("~", end="")
-        print("")
+            print(f"    Clicking [Show More] : attempt ({next(click_num)})")
         time.sleep(5)
 
     def get_stock_info(self):
@@ -73,13 +73,17 @@ class YF_comments_analyzer:
         print("\nComments within past 24 hours\n")
         comment_list_ele = self.driver.find_element_by_xpath(self.xp_elems["comment_list"])
         comment_list_html = comment_list_ele.get_attribute('innerHTML')
+        # print(f"Comment_html: {comment_list_html}")
         comment_list_soup = BeautifulSoup(comment_list_html, 'html.parser')
+        # print(f"Comment_html: {comment_list_soup.text}")
         self.comment_block_list = comment_list_soup.find_all("li", self.soup_elems["comment_block"])
+        # print(f"Comment_list: {self.comment_block_list[0]}")
 
     def get_comment_info(self):
         """Printin comment inforation and storing all comments"""
         for comment_block in self.comment_block_list:
-            user = comment_block.find("button", self.soup_elems["user_tag"])
+            # Temporary for solution for finding user ID
+            user = comment_block.find("button")
             time_stamp = comment_block.find("span", self.soup_elems["time_stamp"]).find("span")
             comment_texts = comment_block.find_all("div", self.soup_elems["comment_text"])
 
@@ -110,11 +114,13 @@ class YF_comments_analyzer:
         import nltk
         nltk.download('stopwords')
         from nltk.corpus import stopwords
+        from datetime import datetime
 
         # some words can be ignored, stock name and abbreviation are recommended
         # to ignore when analyzing indivdual stock
         ignore_words = [
-            "https", "http", "stock", "market", "week", "going", "people"
+            "https", "http", "stock",
+            "market", "week", "going", "people"
         ]
 
         comments = " ".join(self.comment_text_list)
@@ -131,7 +137,12 @@ class YF_comments_analyzer:
         plt.imshow(wc1, interpolation="bilinear")
         plt.axis("off")
         plt.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
-        plt.show()
+
+        current_time = datetime.now().strftime('%b_%d_%Y')
+        file_name = f"Img\[{self.title}]{current_time}.JPG"
+        print(f"Save file: {file_name}")
+        print("="*80)
+        plt.savefig(file_name)
 
 
     def fetch_data(self, link):

@@ -5,7 +5,7 @@
   "index":"//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']",
   "movement":"//span[contains(@class, 'Trsdu(0.3s) Fw(500) Pstart(10px) Fz(24px) C($data')]",
 
-  "comment_list": "//ul[@class='comments-list List(n) Ovs(touch) Pos(r) Mstart(-12px) Pt(5px)']",
-  "old_time_stamp": "//span[@class='C($c-fuji-grey-g) Fz(12px)']//span[text()[contains(.,'day')]]",
+  "comment_list":"//ul[contains(@class, 'comments-list List(n)')]",
+  "old_time_stamp": "//li//div//div//span//span[text()[contains(.,'day')]]",
   "show_more": "//span[text()[contains(.,'Show more')]]"
 }
