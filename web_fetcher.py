@@ -79,6 +79,15 @@ class YF_comments_analyzer:
         self.comment_block_list = comment_list_soup.find_all("li", self.soup_elems["comment_block"])
         # print(f"Comment_list: {self.comment_block_list[0]}")
 
+    @classmethod
+    def get_vote_ct(self, comment_block_html, vote):
+        """Getting the number count for thumbup and thumpdown vote for each comment"""
+        pattern = r"aria-label=\"(\d{1,2}) Thumbs " + vote + r"\""
+        thumb_se = re.search(pattern, comment_block_html)
+        if thumb_se:
+            return int(thumb_se.group(1))
+        return 0
+
     def get_comment_info(self):
         """Printin comment inforation and storing all comments"""
         for comment_block in self.comment_block_list:
@@ -93,18 +102,10 @@ class YF_comments_analyzer:
             if re.match(r".*(second|minute|hour).*", time_stamp.text):
                 print("+"*80)
                 print(f"[{user.text}] [{time_stamp.text}] [{thumb_up_ct}-Up][{thumb_down_ct}-Down]")
-                for comment_text in comment_texts:
-                    self.comment_text_list.append(comment_text.text)
-                    print(repr(comment_text.text))
+                join_comment_text = " ".join([comment.text for comment in comment_texts])
+                self.comment_text_list.append(join_comment_text)
+                print(repr(join_comment_text))
 
-    @classmethod
-    def get_vote_ct(self, comment_block_html, vote):
-        """Getting the number count for thumbup and thumpdown vote for each comment"""
-        pattern = r"aria-label=\"(\d{1,2}) Thumbs " + vote + r"\""
-        thumb_se = re.search(pattern, comment_block_html)
-        if thumb_se:
-            return int(thumb_se.group(1))
-        return 0
 
     def draw_word_map(self):
         """Generating word map using the stored comments"""
@@ -138,6 +139,7 @@ class YF_comments_analyzer:
         plt.axis("off")
         plt.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
 
+        print("="*80)
         current_time = datetime.now().strftime('%b_%d_%Y')
         file_name = f"Img\[{self.title}]{current_time}.JPG"
         print(f"Save file: {file_name}")
