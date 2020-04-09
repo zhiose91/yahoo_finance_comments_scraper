@@ -1,4 +1,4 @@
-from src.misc import json_reader
+from src.misc import json_reader, sp_translate
 from src.chrome_utils import download_driver
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -7,8 +7,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 from itertools import count
+from datetime import datetime
 import time
 import re
+import os
 
 
 class YF_comments_analyzer:
@@ -17,6 +19,8 @@ class YF_comments_analyzer:
         """"Getting xp_elems and soup_elems for json folder"""
         self.xp_elems = json_reader(file_name=r"json/xp_elems.json")
         self.soup_elems = json_reader(file_name=r"json/soup_elems.json")
+        self.current_date = datetime.now().strftime('%b_%d_%Y')
+        self.fetched_comments = []
 
     def set_up_driver_options(self):
         """Setting options for the driver, ignore browser UI an logging"""
@@ -47,7 +51,6 @@ class YF_comments_analyzer:
 
     def driver_load_all(self):
         """Clicking on Show More button to load all the comments within past 24 hrs"""
-        print("*"*80)
         click_num = count(start=1, step=1)
         while not self.driver.find_elements_by_xpath(self.xp_elems["old_time_stamp"]):
             WebDriverWait(self.driver, 30).until(
@@ -62,22 +65,20 @@ class YF_comments_analyzer:
         self.title = self.driver.find_element_by_xpath(self.xp_elems["title"]).text
         self.index = self.driver.find_element_by_xpath(self.xp_elems["index"]).text
         self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
-        print("*"*80)
+
         print(f'Title: {self.title}')
         print(f'Index: {self.index}')
         print(f'Movement: {self.movement}')
-        print("*"*80)
+
 
     def get_comment_block_list(self):
         """Getting the soup objects for each comment block"""
         print("\nComments within past 24 hours\n")
         comment_list_ele = self.driver.find_element_by_xpath(self.xp_elems["comment_list"])
         comment_list_html = comment_list_ele.get_attribute('innerHTML')
-        # print(f"Comment_html: {comment_list_html}")
         comment_list_soup = BeautifulSoup(comment_list_html, 'html.parser')
-        # print(f"Comment_html: {comment_list_soup.text}")
         self.comment_block_list = comment_list_soup.find_all("li", self.soup_elems["comment_block"])
-        # print(f"Comment_list: {self.comment_block_list[0]}")
+
 
     @classmethod
     def get_vote_ct(self, comment_block_html, vote):
@@ -91,6 +92,7 @@ class YF_comments_analyzer:
     def get_comment_info(self):
         """Printin comment inforation and storing all comments"""
         for comment_block in self.comment_block_list:
+
             # Temporary for solution for finding user ID
             user = comment_block.find("button")
             time_stamp = comment_block.find("span", self.soup_elems["time_stamp"]).find("span")
@@ -100,14 +102,37 @@ class YF_comments_analyzer:
             thumb_down_ct = self.get_vote_ct(str(comment_block),vote="Down")
 
             if re.match(r".*(second|minute|hour).*", time_stamp.text):
-                print("+"*80)
-                print(f"[{user.text}] [{time_stamp.text}] [{thumb_up_ct}-Up][{thumb_down_ct}-Down]")
-                join_comment_text = " ".join([comment.text for comment in comment_texts])
-                self.comment_text_list.append(join_comment_text)
-                print(repr(join_comment_text))
+                join_comment_text = " ".join([
+                    sp_translate(comment.text)
+                    for comment in comment_texts
+                ])
+
+                self.fetched_comments.append({
+                    "Username"      :      user.text,
+                    "TimeStamp"     :      time_stamp.text,
+                    "ThumbUp"       :      thumb_up_ct,
+                    "ThumbDown"     :      thumb_down_ct,
+                    "Comment"       :      join_comment_text
+                })
 
 
-    def draw_word_map(self):
+    def save_fetched_comments(self, output_path, delimiter="\t"):
+        """Write fetched comments as text file"""
+        file_name = os.path.join(output_path, f'{self.title} - {self.current_date}.csv')
+        print(f'Save fetched comments CSV: {file_name}')
+
+        header = ["Username", "TimeStamp", "ThumbUp", "ThumbDown", "Comment" ]
+        with open(file_name, "w") as w_f:
+            w_f.write(f'{delimiter.join(header)}\n')
+            for comment in self.fetched_comments:
+                new_line = delimiter.join([
+                    str(val).replace(delimiter, "")
+                    for val in comment.values()
+                ])
+                w_f.write(f'{new_line}\n')
+
+
+    def draw_word_map(self, output_path):
         """Generating word map using the stored comments"""
         from nltk.tokenize import wordpunct_tokenize
         from wordcloud import WordCloud as wc
@@ -115,7 +140,6 @@ class YF_comments_analyzer:
         import nltk
         nltk.download('stopwords')
         from nltk.corpus import stopwords
-        from datetime import datetime
 
         # some words can be ignored, stock name and abbreviation are recommended
         # to ignore when analyzing indivdual stock
@@ -124,7 +148,9 @@ class YF_comments_analyzer:
             "market", "week", "going", "people"
         ]
 
-        comments = " ".join(self.comment_text_list)
+        comment_text_list = [x["Comment"] for x in self.fetched_comments]
+        comments = " ".join(comment_text_list)
+
         _stopwords = set(stopwords.words('english'))
         list_of_words = [i.lower() for i in wordpunct_tokenize(comments)
             if i.lower() not in _stopwords and i.isalpha()]
@@ -138,29 +164,22 @@ class YF_comments_analyzer:
         plt.imshow(wc1, interpolation="bilinear")
         plt.axis("off")
         plt.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
-
-        print("="*80)
-        current_time = datetime.now().strftime('%b_%d_%Y')
-        file_name = f"Img\[{self.title}]{current_time}.JPG"
-        print(f"Save file: {file_name}")
-        print("="*80)
-        plt.savefig(file_name)
+        file_name = os.path.join(output_path, f"{self.title} - {self.current_date}.JPG")
+        print(f"Save wordmap file: {file_name}")
+        plt.savefig(file_name, pad_inches=0)
 
 
     def fetch_data(self, link):
         """Pipeline"""
         self.set_up_driver_options()
         try:
-            print("="*80)
             self.driver_get_link(link)
             self.driver_select_newest()
             self.driver_load_all()
             self.get_stock_info()
             self.get_comment_block_list()
-            self.comment_text_list = []
             self.get_comment_info()
         finally:
-            print("="*80)
             self.driver.quit()
 
 
@@ -170,4 +189,5 @@ if __name__ == '__main__':
     analyzer = YF_comments_analyzer()
     for link in web_links:
         analyzer.fetch_data(link)
-        analyzer.draw_word_map()
+        analyzer.save_fetched_comments("Saved_comments")
+        analyzer.draw_word_map("Img")
