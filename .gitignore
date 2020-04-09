@@ -5,3 +5,4 @@ __pycache__
 test_input.txt
 web_fetcher_dirty.py
 word_map.py
+venv
