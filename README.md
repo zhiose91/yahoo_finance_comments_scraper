@@ -1,6 +1,13 @@
 # YF_comments_analyzer
 
-This script can be use to scrap newest Yahoo Finance comments within past 24 hours, and to generate corresponding WordCloud
+- Scrap Yahoo Finance comments within past 24 hours
+- Store comments locally as tab delimited csv file
+  - Username
+  - Time Stamp
+  - Thumb Up count
+  - Thumb Down count
+  - Comment text
+- Generate corresponding WordCloud
 
 ## Getting Started
 
@@ -34,7 +41,7 @@ wordcloud==1.6.0
 ```
 Additional file - auto download for Windows users - [Link](https://chromedriver.chromium.org/downloads)
 ```
-chromedriver
+chromedriver.exe
 ```
 
 
@@ -55,8 +62,8 @@ venv\Scripts\activate
 
 ## Running the tests
 
-Modifying json\web_links.json
-*Please use the link for the conversation page*
+Modifying **`SITES`** variable in config.py for custom Yahoo Finance Page
+**Please use the link for the conversation page**
 
 Run following command line to start the process
 ```
