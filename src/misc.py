@@ -1,6 +1,7 @@
-import json
-import sys
 from datetime import datetime
+import json
+import os
+
 
 def json_reader(file_name):
     with open(file_name, "r") as file:
@@ -9,6 +10,11 @@ def json_reader(file_name):
 def sp_translate(text):
     return text.encode('ascii', 'ignore').decode('ascii')
 
+
+def check_n_mkdir(dir):
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    return dir
 
 class Logging:
 

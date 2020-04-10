@@ -1,4 +1,4 @@
-from src.misc import json_reader, sp_translate, Logging
+from src.misc import json_reader, sp_translate, check_n_mkdir, Logging
 from src.chrome_utils import download_driver
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -26,10 +26,11 @@ class YF_comments_analyzer(Logging):
         self.log(f'Loading config file')
         self.xp_elems = json_reader(file_name=CONFIG["xp_elems"])
         self.soup_elems = json_reader(file_name=CONFIG["soup_elems"])
-        self.csv_output_folder = CONFIG["csv_output_folder"]
-        self.wordmap_output_folder = CONFIG["wordmap_output_folder"]
-        self.ignore_words = CONFIG["ignore_words"]
 
+        self.csv_output_folder = check_n_mkdir(CONFIG["csv_output_folder"])
+        self.wordmap_output_folder = check_n_mkdir(CONFIG["wordmap_output_folder"])
+
+        self.ignore_words = CONFIG["ignore_words"]
 
 
     def set_up_driver_options(self):
@@ -203,10 +204,9 @@ class YF_comments_analyzer(Logging):
         import string
         self.log_open(f'Work_log/{self.current_date}.log')
         self.log(f'Processing [{instance_name}]')
-        self.load_config(CONFIG)
-        self.set_up_driver_options()
-
         try:
+            self.load_config(CONFIG)
+            self.set_up_driver_options()
             self.driver_get_link(link)
             self.driver_select_newest()
             self.driver_load_all()
