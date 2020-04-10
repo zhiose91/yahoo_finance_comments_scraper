@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 from itertools import count
 from datetime import datetime
-from config import CONFIG
+from config import CONFIG, SITES
 import time
 import re
 import os
@@ -177,6 +177,7 @@ class YF_comments_analyzer(Logging):
         # to ignore when analyzing indivdual stock
         comments = " ".join([x["Comment"] for x in self.fetched_comments])
 
+        # getting set of stopwords
         _stopwords = set(stopwords.words('english'))
         list_of_words = [i.lower() for i in wordpunct_tokenize(comments)
             if i.lower() not in _stopwords and i.isalpha()]
@@ -224,7 +225,6 @@ class YF_comments_analyzer(Logging):
 
 if __name__ == '__main__':
     # download_driver()
-    web_links = json_reader(file_name=r"json/web_links.json")
     analyzer = YF_comments_analyzer()
-    for instance_name, link in web_links:
+    for instance_name, link in SITES:
         analyzer.fetch_data(instance_name, link)

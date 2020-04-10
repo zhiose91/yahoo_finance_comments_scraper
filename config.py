@@ -6,3 +6,7 @@ CONFIG = {
     "soup_elems"              :   r"json/soup_elems.json",
     "ignore_words"            :   ["https", "http", "stock", "market", "week", "going", "people"],
 }
+
+SITES = [
+    ("SP500", "https://finance.yahoo.com/quote/%5EGSPC/community?p=%5EGSPC")
+]
