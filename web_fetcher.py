@@ -202,8 +202,11 @@ class YF_comments_analyzer(Logging):
 
 
     def fetch_data(self, instance_name, link):
-        import string
-        self.log_open(f'Work_log/{self.current_date}.log')
+        log_name = os.path.join(
+            check_n_mkdir(CONFIG["log_output_folder"]),
+            f'{self.current_date}.log'
+        )
+        self.log_open(log_name)
         self.log(f'Processing [{instance_name}]')
         try:
             self.load_config(CONFIG)
