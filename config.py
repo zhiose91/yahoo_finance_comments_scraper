@@ -1,7 +1,7 @@
 
 CONFIG = {
-    "csv_output_folder"       :   r"Saved\comments",
-    "wordmap_output_folder"   :   r"Saved\daily_word_maps",
+    "csv_output_folder"       :   r"Saved_comments",
+    "wordmap_output_folder"   :   r"Saved_daily_word_maps",
     "log_output_folder"       :   r"Work_log",
     "ignore_words"            :   ["https", "http", "stock", "market", "week", "going", "people"],
 }
