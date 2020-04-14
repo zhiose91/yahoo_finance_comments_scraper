@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 from src.misc import json_reader, sp_translate, check_n_mkdir, Logging
 from src.chrome_utils import download_driver
 from selenium import webdriver
@@ -8,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 from itertools import count
 from datetime import datetime
-from config import CONFIG, SITES
+from config import CONFIG, SITES, SOUP_ELEMS, XP_ELEMS
 import time
 import re
 import os
@@ -24,8 +27,9 @@ class YF_comments_analyzer(Logging):
     def load_config(self, CONFIG):
         """"Loading config file"""
         self.log(f'Loading config file')
-        self.xp_elems = json_reader(file_name=CONFIG["xp_elems"])
-        self.soup_elems = json_reader(file_name=CONFIG["soup_elems"])
+
+        self.xp_elems = XP_ELEMS
+        self.soup_elems = SOUP_ELEMS
 
         self.csv_output_folder = check_n_mkdir(CONFIG["csv_output_folder"])
         self.wordmap_output_folder = check_n_mkdir(CONFIG["wordmap_output_folder"])
