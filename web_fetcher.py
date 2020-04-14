@@ -2,7 +2,6 @@
 
 
 from src.misc import json_reader, sp_translate, check_n_mkdir, Logging
-from src.chrome_utils import download_driver
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
@@ -41,21 +40,15 @@ class YF_comments_analyzer(Logging):
         """Setting options for the driver, ignore browser UI an logging"""
         self.log(f'Setting driver options')
         self.options = webdriver.ChromeOptions()
-        self.options.add_argument('--ignore-certificate-errors')
-        self.options.add_argument('--ignore-ssl-errors')
-        self.options.add_argument('headless')
-        self.options.add_argument("--log-level=3")
+        self.options.add_argument('--no-sandbox')
+        self.options.add_argument('--headless')
+        self.options.add_argument("--disable-dev-shm-usage")
 
 
     def driver_get_link(self, link):
         """Launching the driver with options and loading assigned link"""
         self.log(f'Opening: {link}')
-        try:
-            self.driver = webdriver.Chrome(chrome_options=self.options)
-        except WebDriverException:
-            download_driver()
-            self.driver = webdriver.Chrome(chrome_options=self.options)
-
+        self.driver = webdriver.Chrome("/usr/bin/chromedriver", chrome_options=self.options)
         self.driver.get(link)
 
 
