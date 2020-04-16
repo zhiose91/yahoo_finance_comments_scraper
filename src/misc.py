@@ -13,7 +13,7 @@ def sp_translate(text):
 
 def check_n_mkdir(dir):
     if not os.path.exists(dir):
-        os.mkdir(dir)
+        os.makedirs(dir)
     return dir
 
 class Logging:
