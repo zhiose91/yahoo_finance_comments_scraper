@@ -141,14 +141,14 @@ class YF_comments_analyzer(Logging):
         """Write fetched comments as text file"""
         self.log(f'Saving fetched comments CSV:')
 
-        file_name = os.path.join(
+        self.csv_file_name = os.path.join(
             self.csv_output_folder,
             f'{self.title} - {self.current_date}.csv'
         )
 
 
         header = ["Username", "TimeStamp", "ThumbUp", "ThumbDown", "Comment" ]
-        with open(file_name, "w") as w_f:
+        with open(self.csv_file_name, "w") as w_f:
             w_f.write(f'{delimiter.join(header)}\n')
             for comment in self.fetched_comments:
                 new_line = delimiter.join([
@@ -156,7 +156,7 @@ class YF_comments_analyzer(Logging):
                     for val in comment.values()
                 ])
                 w_f.write(f'{new_line}\n')
-        self.log(f'Saved as: {file_name}', mode="sub")
+        self.log(f'Saved as: {self.csv_file_name}', mode="sub")
 
 
     def draw_word_map(self):
@@ -189,13 +189,22 @@ class YF_comments_analyzer(Logging):
         plt.axis("off")
         plt.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
 
-        file_name = os.path.join(
+        self.wm_file_name = os.path.join(
             self.wordmap_output_folder,
             f"{self.title} - {self.current_date}.JPG"
         )
-        plt.savefig(file_name)
+        plt.savefig(self.wm_file_name)
 
-        self.log(f'Saved as: {file_name}', mode="sub")
+        self.log(f'Saved as: {self.wm_file_name}', mode="sub")
+
+
+    def sync_outputs(self):
+
+        self.log(f'Sync S3: {self.wm_file_name}', mode="main")
+        os.system("aws s3 sync /home/ec2-user/web_fetcher/Saved_daily_word_maps s3://pythonic-monkey-media/Saved_daily_word_maps")
+
+        self.log(f'Sync S3: {self.csv_file_name}', mode="main")
+        os.system("aws s3 sync /home/ec2-user/web_fetcher/Saved_comments s3://pythonic-monkey-media/Saved_comments")
 
 
     def fetch_data(self, instance_name, link):
@@ -216,6 +225,7 @@ class YF_comments_analyzer(Logging):
             self.get_comment_info()
             self.save_fetched_comments()
             self.draw_word_map()
+            self.sync_outputs()
         except:
             self.log("Unexpected Error occurred")
         finally:
