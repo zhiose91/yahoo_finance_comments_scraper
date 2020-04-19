@@ -10,7 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 from itertools import count
 from datetime import datetime
-from config import CONFIG, SITES, SOUP_ELEMS, XP_ELEMS
+from config import CONFIG, SITES, XP_ELEMS
 import time
 import re
 import os
@@ -28,7 +28,6 @@ class YF_comments_analyzer(Logging):
         self.log(f'Loading config file')
 
         self.xp_elems = XP_ELEMS
-        self.soup_elems = SOUP_ELEMS
 
         self.csv_output_folder = check_n_mkdir(CONFIG["csv_output_folder"])
         self.wordmap_output_folder = check_n_mkdir(CONFIG["wordmap_output_folder"])
@@ -54,11 +53,12 @@ class YF_comments_analyzer(Logging):
 
     def driver_select_newest(self):
         """Waiting for Top React element to show up and changing filter to Newest"""
-        self.log(f'Loading newest comments')
         WebDriverWait(self.driver, 100).until(
             EC.presence_of_element_located((By.XPATH, self.xp_elems["top_react"]))
         )
+        self.log(f'Clicking [Top React]')
         self.driver.find_element_by_xpath(self.xp_elems["top_react"]).click()
+        self.log(f'Clicking [Newest]')
         self.driver.find_element_by_xpath(self.xp_elems["newest"]).click()
         time.sleep(10)
 
@@ -79,61 +79,74 @@ class YF_comments_analyzer(Logging):
     def get_stock_info(self):
         """Printing stock information including name, index, and movement"""
         self.log(f'Getting instance information')
+
         self.title = self.driver.find_element_by_xpath(self.xp_elems["title"]).text
-        self.index = self.driver.find_element_by_xpath(self.xp_elems["index"]).text
-        self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
         self.log(f'Title: {self.title}', mode="sub")
+
+        self.index = self.driver.find_element_by_xpath(self.xp_elems["index"]).text
         self.log(f'Index: {self.index}', mode="sub")
+
+        self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
         self.log(f'Movement: {self.movement}', mode="sub")
 
 
     def get_comment_block_list(self):
         """Getting the soup objects for each comment block"""
         self.log(f'Getting comment block list')
+
         comment_list_ele = self.driver.find_element_by_xpath(self.xp_elems["comment_list"])
-        comment_list_html = comment_list_ele.get_attribute('innerHTML')
-        comment_list_soup = BeautifulSoup(comment_list_html, 'html.parser')
-        self.comment_block_list = comment_list_soup.find_all("li", self.soup_elems["comment_block"])
+        self.comment_block_elem_list = self.driver.find_elements_by_xpath(self.xp_elems["comment_block"])
 
 
     @classmethod
-    def get_vote_ct(self, comment_block_html, vote):
+    def get_vote_ct(self, label):
         """Getting the number count for thumbup and thumpdown vote for each comment"""
-        pattern = r"aria-label=\"(\d{1,2}) Thumbs " + vote + r"\""
-        thumb_se = re.search(pattern, comment_block_html)
+        thumb_se = re.search("\d+", label)
         if thumb_se:
-            return int(thumb_se.group(1))
+            return int(thumb_se.group(0))
         return 0
-
 
     def get_comment_info(self):
         """Printin comment inforation and storing all comments"""
         self.log(f'Fetching comments:')
 
         self.fetched_comments = []
-        for comment_block in self.comment_block_list:
+        for comment_block in self.comment_block_elem_list:
 
-            # Temporary for solution for finding user ID
-            user = comment_block.find("button")
-            time_stamp = comment_block.find("span", self.soup_elems["time_stamp"]).find("span")
-            comment_texts = comment_block.find_all("div", self.soup_elems["comment_text"])
+            user_elem = comment_block.find_element_by_xpath(self.xp_elems["comment_user"])
+            time_stamp_elem = comment_block.find_element_by_xpath(self.xp_elems["time_stamp"])
+            comment_text_elem = comment_block.find_element_by_xpath(self.xp_elems["comment_text"])
 
-            thumb_up_ct = self.get_vote_ct(str(comment_block), vote="Up")
-            thumb_down_ct = self.get_vote_ct(str(comment_block),vote="Down")
+            comment_thumbup_elem = comment_block.find_element_by_xpath(self.xp_elems["thumbup"])
+            comment_thumbdown_elem = comment_block.find_element_by_xpath(self.xp_elems["thumbdown"])
 
-            if re.match(r".*(second|minute|hour).*", time_stamp.text):
-                join_comment_text = " ".join([
-                    sp_translate(comment.text)
-                    for comment in comment_texts
-                ])
+            comment_url_elems = comment_text_elem.find_elements_by_xpath(self.xp_elems["comment_urls"])
+            comment_media_elems = comment_text_elem.find_elements_by_xpath(self.xp_elems["comment_media"])
+
+            thumb_up_ct = self.get_vote_ct(comment_thumbup_elem.get_attribute('aria-label'))
+            thumb_down_ct = self.get_vote_ct(comment_thumbdown_elem.get_attribute('aria-label'))
+
+            comment_text = comment_text_elem.text.replace("\n", " ")
+            comment_urls = [url.text for url in comment_url_elems if url.text != ""]
+
+            if comment_urls:
+                for url in comment_urls:
+                    comment_text = comment_text.replace(url ," ")
+
+            comment_media = [media.get_attribute("src") for media in comment_media_elems]
+
+            if re.match(r".*(second|minute|hour).*", time_stamp_elem.text):
 
                 self.fetched_comments.append({
-                    "Username"      :      user.text,
-                    "TimeStamp"     :      time_stamp.text,
+                    "Username"      :      user_elem.text,
+                    "TimeStamp"     :      time_stamp_elem.text,
                     "ThumbUp"       :      thumb_up_ct,
                     "ThumbDown"     :      thumb_down_ct,
-                    "Comment"       :      join_comment_text
+                    "Comment"       :      sp_translate(comment_text),
+                    "Url"           :      comment_urls,
+                    "Media"         :      comment_media
                 })
+
         self.log(f'Found {len(self.fetched_comments)} comments:', mode="sub")
 
 
@@ -226,8 +239,8 @@ class YF_comments_analyzer(Logging):
             self.save_fetched_comments()
             self.draw_word_map()
             self.sync_outputs()
-        except:
-            self.log("Unexpected Error occurred")
+        except Exception as e:
+            self.log(f'Unexpected Error occurred: {str(e)}')
         finally:
             self.driver.quit()
             self.log_close()
