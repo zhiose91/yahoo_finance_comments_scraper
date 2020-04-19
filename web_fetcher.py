@@ -28,7 +28,7 @@ class YF_comments_analyzer(Logging):
         self.log(f'Loading config file')
 
         self.xp_elems = XP_ELEMS
-        
+
         self.csv_output_folder = check_n_mkdir(CONFIG["csv_output_folder"])
         self.wordmap_output_folder = check_n_mkdir(CONFIG["wordmap_output_folder"])
 
@@ -150,7 +150,7 @@ class YF_comments_analyzer(Logging):
                     "ThumbDown"     :      thumb_down_ct,
                     "Comment"       :      sp_translate(comment_text),
                     "Url"           :      comment_urls,
-                    "comment_media" :      comment_media
+                    "Media"         :      comment_media
                 })
 
         self.log(f'Found {len(self.fetched_comments)} comments:', mode="sub")
