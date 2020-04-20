@@ -8,5 +8,5 @@ def check_n_mkdir(dir):
     import os
     dir = dir.replace("\\", "/")
     if not os.path.exists(dir):
-        os.mkdir(dir)
+        os.makedirs(dir)
     return dir
