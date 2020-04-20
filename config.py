@@ -1,7 +1,7 @@
 CONFIGS = {
-    "csv_output_folder"       :   r"Saved_comments",
-    "wordmap_output_folder"   :   r"Saved_daily_word_maps",
-    "log_output_folder"       :   r"Work_log"
+    "csv_output_folder"       :   r"/home/ec2-user/web_fetcher/Saved_comments",
+    "wordmap_output_folder"   :   r"/home/ec2-user/web_fetcher/Saved_daily_word_maps",
+    "log_output_folder"       :   r"/home/ec2-user/web_fetcher/Work_log",
 }
 
 SITES = [
