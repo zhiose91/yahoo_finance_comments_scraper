@@ -117,7 +117,13 @@ class YF_comments_analyzer:
         from selenium.common.exceptions import WebDriverException
 
         self.log(f'Opening: {link}')
-        self.driver = webdriver.Chrome("/usr/bin/chromedriver", chrome_options=self.options)
+        try:
+            self.driver = webdriver.Chrome("/usr/bin/chromedriver", chrome_options=self.options)
+        except WebDriverException:
+            from src.chrome_utils import download_driver_AWS_linux_2
+            download_driver_AWS_linux_2()
+            self.driver = webdriver.Chrome("/usr/bin/chromedriver", chrome_options=self.options)
+
         self.driver.get(link)
 
 
