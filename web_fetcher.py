@@ -51,8 +51,8 @@ class YF_comments_analyzer:
     def wordmap_output_folder(self, folder_name):
         self.__wordmap_output_folder = check_n_mkdir(folder_name)
 
-
-    def get_fetched_comments():
+    @property
+    def fetched_comments(self):
         return self.__fetched_comments
 
 
