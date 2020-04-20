@@ -332,7 +332,7 @@ if __name__ == '__main__':
         analyzer.fetch_comments(instance_name, link)
         if analyzer.fetched_comments:
             analyzer.save_fetched_comments()
-            analyzer.draw_word_cloud()
+            analyzer.draw_word_cloud(ignore_words=["stock", "market"])
             analyzer.save_word_cloud()
     analyzer.sync_outputs()
     analyzer.log_close()
