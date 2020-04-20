@@ -1,12 +1,11 @@
-import re
-import os
-import io
-import requests
-from contextlib import closing
-import zipfile
-
 def download_driver():
     """Downloading chromedriver.exe with corresponding version"""
+    import requests
+    from contextlib import closing
+    import zipfile
+    import re
+    import os
+    import io
 
     print("Initialize downloading driver:", end = " ")
     driver_API = "https://chromedriver.storage.googleapis.com"
