@@ -3,6 +3,7 @@
 
 from src.misc import json_reader, sp_translate, check_n_mkdir, Logging
 from src.chrome_utils import download_driver
+from src.xp_elems import XP_ELEMS
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
@@ -10,7 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from itertools import count
 from datetime import datetime
-from config import CONFIG, SITES, XP_ELEMS
+from config import CONFIG, SITES
 import time
 import re
 import os
@@ -23,11 +24,14 @@ class YF_comments_analyzer(Logging):
         self.current_date = datetime.now().strftime('%b_%d_%Y')
 
 
+    def load_xp_elems(self, XP_ELEMS):
+        self.log(f'Loading XP_ELEMS')
+        self.xp_elems = XP_ELEMS
+
+
     def load_config(self, CONFIG):
         """"Loading config file"""
         self.log(f'Loading config file')
-
-        self.xp_elems = XP_ELEMS
 
         self.csv_output_folder = check_n_mkdir(CONFIG["csv_output_folder"])
         self.wordmap_output_folder = check_n_mkdir(CONFIG["wordmap_output_folder"])
@@ -191,8 +195,6 @@ class YF_comments_analyzer(Logging):
         nltk.download('stopwords')
         from nltk.corpus import stopwords
 
-        # some words can be ignored, stock name and abbreviation are recommended
-        # to ignore when analyzing indivdual stock
         comments = " ".join([x["Comment"] for x in self.fetched_comments])
 
         # getting set of stopwords
@@ -231,9 +233,10 @@ class YF_comments_analyzer(Logging):
         )
         self.log_open(log_name)
         self.log(f'Processing [{instance_name}]')
+        self.load_xp_elems()
+        self.load_config(CONFIG)
+        self.set_up_driver_options()
         try:
-            self.load_config(CONFIG)
-            self.set_up_driver_options()
             self.driver_get_link(link)
             self.driver_select_newest()
             self.driver_load_all()
