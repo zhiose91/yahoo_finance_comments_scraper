@@ -180,7 +180,7 @@ class YF_comments_analyzer(Logging):
         self.log(f'Saved as: {file_name}', mode="sub")
 
 
-    def draw_word_cloud(self, file_name=""):
+    def draw_word_cloud(self, file_name="", wc_show=False):
         """Generating word cloud using the stored comments"""
         self.log(f'Generating wordmap:')
 
@@ -209,6 +209,9 @@ class YF_comments_analyzer(Logging):
         plt.imshow(wc_graph, interpolation="bilinear")
         plt.axis("off")
         plt.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
+
+        if wc_show:
+            plt.show()
 
         if not file_name:
             file_name = os.path.join(
