@@ -156,14 +156,15 @@ class YF_comments_analyzer(Logging):
         self.log(f'Found {len(self.fetched_comments)} comments:', mode="sub")
 
 
-    def save_fetched_comments(self, delimiter="\t"):
+    def save_fetched_comments(self, delimiter="\t", file_name=""):
         """Write fetched comments as text file"""
         self.log(f'Saving fetched comments CSV:')
 
-        file_name = os.path.join(
-            self.csv_output_folder,
-            f'{self.title} - {self.current_date}.csv'
-        )
+        if not file_name:
+            file_name = os.path.join(
+                self.csv_output_folder,
+                f'{self.title} - {self.current_date}.csv'
+            )
 
         header = self.fetched_comments[0].keys()
 
@@ -179,7 +180,7 @@ class YF_comments_analyzer(Logging):
         self.log(f'Saved as: {file_name}', mode="sub")
 
 
-    def draw_word_cloud(self):
+    def draw_word_cloud(self, file_name=""):
         """Generating word cloud using the stored comments"""
         self.log(f'Generating wordmap:')
 
@@ -204,15 +205,17 @@ class YF_comments_analyzer(Logging):
         for word in self.ignore_words:
             words_block = words_block.replace(word, "")
 
-        wc1 = wc(max_words=200, background_color="white").generate(words_block)
-        plt.imshow(wc1, interpolation="bilinear")
+        wc_graph = wc(max_words=200, background_color="white").generate(words_block)
+        plt.imshow(wc_graph, interpolation="bilinear")
         plt.axis("off")
         plt.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
 
-        file_name = os.path.join(
-            self.wordmap_output_folder,
-            f"{self.title} - {self.current_date}.JPG"
-        )
+        if not file_name:
+            file_name = os.path.join(
+                self.wordmap_output_folder,
+                f"{self.title} - {self.current_date}.JPG"
+            )
+
         plt.savefig(file_name)
 
         self.log(f'Saved as: {file_name}', mode="sub")
