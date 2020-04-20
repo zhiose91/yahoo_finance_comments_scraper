@@ -51,8 +51,8 @@ class YF_comments_analyzer:
     def wordmap_output_folder(self, folder_name):
         self.__wordmap_output_folder = check_n_mkdir(folder_name)
 
-
-    def get_fetched_comments():
+    @property
+    def fetched_comments(self):
         return self.__fetched_comments
 
 
@@ -235,15 +235,17 @@ class YF_comments_analyzer:
         """Write fetched comments as text file"""
         self.log(f'Saving fetched comments CSV:')
 
-        if not file_name:
-            file_name = os.path.join(
+        if file_name:
+            self.csv_file_name = file_name
+        else:
+            self.csv_file_name = os.path.join(
                 check_n_mkdir(self.__csv_output_folder),
                 f'{self.title} - {self.current_date}.csv'
             )
 
         header = self.__fetched_comments[0].keys()
 
-        with open(file_name, "w") as w_f:
+        with open(self.csv_file_name, "w") as w_f:
             w_f.write(f'{delimiter.join(header)}\n')
             for comment_details in self.__fetched_comments:
                 new_line = delimiter.join([
@@ -252,7 +254,7 @@ class YF_comments_analyzer:
                 ])
                 w_f.write(f'{new_line}\n')
 
-        self.log(f'Saved as: {file_name}', mode="sub")
+        self.log(f'Saved as: {self.csv_file_name}', mode="sub")
 
 
     def draw_word_cloud(self, wc_show=False, ignore_words=None):
@@ -292,14 +294,16 @@ class YF_comments_analyzer:
 
     def save_word_cloud(self, file_name=None):
 
-        if not file_name:
-            file_name = os.path.join(
+        if file_name:
+            self.wc_file_name = file_name
+        else:
+            self.wc_file_name = os.path.join(
                 check_n_mkdir(self.__wordmap_output_folder),
                 f"{self.title} - {self.current_date}.JPG"
             )
 
-        self.log(f'Saved word cloud as: {file_name}', mode="sub")
-        self.wc_plot.savefig(file_name)
+        self.log(f'Saved word cloud as: {self.wc_file_name}', mode="sub")
+        self.wc_plot.savefig(self.wc_file_name)
 
 
     def fetch_comments(self, instance_name, link):
