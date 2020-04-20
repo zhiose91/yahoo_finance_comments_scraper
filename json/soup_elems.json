@@ -1,9 +1,0 @@
-{
-  "time_stamp": {"class": "Fz(12px) C(#828c93)"},
-
-  "comment_block": {"class": "comment Pend(2px) Mt(5px) Mb(11px) P(12px)"},
-  "comment_text": {"class": "C($c-fuji-grey-l) Mb(2px) Fz(14px) Lh(20px) Pend(8px)"},
-
-  "thumb_up_block": {"class": "O(n):h O(n):a  Bgc(t) Bdc(t) M(0) P(0) Bd(n) Mend(12px)"},
-  "thumb_up_ct": {"class": "D(ib) Mstart(4px) Va(m) Fz(12px) C($c-fuji-grey-g)"}
-}
