@@ -179,8 +179,8 @@ class YF_comments_analyzer(Logging):
         self.log(f'Saved as: {file_name}', mode="sub")
 
 
-    def draw_word_map(self):
-        """Generating word map using the stored comments"""
+    def draw_word_cloud(self):
+        """Generating word cloud using the stored comments"""
         self.log(f'Generating wordmap:')
 
         from nltk.tokenize import wordpunct_tokenize
@@ -235,7 +235,7 @@ class YF_comments_analyzer(Logging):
             self.get_comment_block_list()
             self.get_comment_info()
             self.save_fetched_comments()
-            self.draw_word_map()
+            self.draw_word_cloud()
         except Exception as e:
             self.log(f'Unexpected Error occurred: {str(e)}')
         finally:
