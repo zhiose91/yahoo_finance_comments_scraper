@@ -1,38 +1,106 @@
 #!/usr/bin/env python3
 
-
-from src.misc import json_reader, sp_translate, check_n_mkdir, Logging
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
-from itertools import count
 from datetime import datetime
-from config import CONFIG, SITES, XP_ELEMS
+from src.misc import check_n_mkdir
 import time
-import re
 import os
+import re
 
 
-class YF_comments_analyzer(Logging):
+class YF_comments_analyzer:
 
-    def __init__(self):
+    def __init__(self, configs=None):
+
         """"Getting xp_elems and soup_elems for json folder"""
         self.current_date = datetime.now().strftime('%b_%d_%Y')
+        self.__fetched_comments = []
+        self.__log_output_folder = check_n_mkdir("tmp")
+        self.__csv_output_folder = check_n_mkdir("tmp")
+        self.__wordmap_output_folder = check_n_mkdir("tmp")
+        self.__log_file = None
+        if configs:
+            self.load_config(configs)
+        self.load_xp_elems()
+        self.set_up_driver_options()
+
+    @property
+    def log_output_folder(self):
+        return self.__log_output_folder
+
+    @log_output_folder.setter
+    def log_output_folder(self, folder_name):
+        self.__log_output_folder = check_n_mkdir(folder_name)
+
+    @property
+    def csv_output_folder(self):
+        return self.__csv_output_folder
+
+    @csv_output_folder.setter
+    def csv_output_folder(self, folder_name):
+        self.__csv_output_folder = check_n_mkdir(folder_name)
+
+    @property
+    def wordmap_output_folder(self):
+        return self.__wordmap_output_folder
+
+    @wordmap_output_folder.setter
+    def wordmap_output_folder(self, folder_name):
+        self.__wordmap_output_folder = check_n_mkdir(folder_name)
 
 
-    def load_config(self, CONFIG):
-        """"Loading config file"""
-        self.log(f'Loading config file')
+    def get_fetched_comments():
+        return self.__fetched_comments
 
+
+    @classmethod
+    def current_datetime(self):
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+    def log_open(self, file_name=None):
+        if not file_name:
+            file_name = os.path.join(self.__log_output_folder, f'{self.current_date}.log')
+        self.__log_file = open(file_name, "a")
+
+
+    def log(self, log_text, mode="main"):
+
+        if mode == "main":
+            pre_fix = ">>> "
+        elif mode == "sub":
+            pre_fix = "    "
+        elif mode == "sub+":
+            pre_fix = "        "
+        else:
+            pre_fix = ">>> "
+
+        log_message = f'{self.current_datetime()} {pre_fix}{log_text}'
+        print(log_message)
+        if self.__log_file: self.__log_file.write(f'{log_message}\n')
+
+
+    def log_close(self):
+        self.__log_file.write("\n")
+        self.__log_file.close()
+
+
+    def load_xp_elems(self):
+        self.log(f'Loading XP_ELEMS')
+        from src.xp_elems import XP_ELEMS
         self.xp_elems = XP_ELEMS
 
-        self.csv_output_folder = check_n_mkdir(CONFIG["csv_output_folder"])
-        self.wordmap_output_folder = check_n_mkdir(CONFIG["wordmap_output_folder"])
 
-        self.ignore_words = CONFIG["ignore_words"]
+    def load_config(self, configs):
+        """"Loading config file"""
+
+        self.log(f'Loading config file')
+        self.__log_output_folder = check_n_mkdir(configs["log_output_folder"])
+        self.__csv_output_folder = check_n_mkdir(configs["csv_output_folder"])
+        self.__wordmap_output_folder = check_n_mkdir(configs["wordmap_output_folder"])
 
 
     def set_up_driver_options(self):
@@ -46,6 +114,8 @@ class YF_comments_analyzer(Logging):
 
     def driver_get_link(self, link):
         """Launching the driver with options and loading assigned link"""
+        from selenium.common.exceptions import WebDriverException
+
         self.log(f'Opening: {link}')
         self.driver = webdriver.Chrome("/usr/bin/chromedriver", chrome_options=self.options)
         self.driver.get(link)
@@ -65,14 +135,16 @@ class YF_comments_analyzer(Logging):
 
     def driver_load_all(self):
         """Clicking on Show More button to load all the comments within past 24 hrs"""
-        self.log(f'Clicking [More] to load more comments:')
+        from itertools import count
+        self.log(f'Loading comments')
+
         click_num = count(start=1, step=1)
         while not self.driver.find_elements_by_xpath(self.xp_elems["old_time_stamp"]):
             WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, self.xp_elems["show_more"]))
             )
             self.driver.find_element_by_xpath(self.xp_elems["show_more"]).click()
-            self.log(f'Attempt ({next(click_num)})', mode="sub")
+            self.log(f'Clicking [More] ({next(click_num)})', mode="sub")
         time.sleep(5)
 
 
@@ -101,6 +173,7 @@ class YF_comments_analyzer(Logging):
     @classmethod
     def get_vote_ct(self, label):
         """Getting the number count for thumbup and thumpdown vote for each comment"""
+
         thumb_se = re.search("\d+", label)
         if thumb_se:
             return int(thumb_se.group(0))
@@ -108,9 +181,9 @@ class YF_comments_analyzer(Logging):
 
     def get_comment_info(self):
         """Printin comment inforation and storing all comments"""
+        from src.misc import sp_translate
         self.log(f'Fetching comments:')
 
-        self.fetched_comments = []
         for comment_block in self.comment_block_elem_list:
 
             user_elem = comment_block.find_element_by_xpath(self.xp_elems["comment_user"])
@@ -137,7 +210,7 @@ class YF_comments_analyzer(Logging):
 
             if re.match(r".*(second|minute|hour).*", time_stamp_elem.text):
 
-                self.fetched_comments.append({
+                self.__fetched_comments.append({
                     "Username"      :      user_elem.text,
                     "TimeStamp"     :      time_stamp_elem.text,
                     "ThumbUp"       :      thumb_up_ct,
@@ -147,35 +220,37 @@ class YF_comments_analyzer(Logging):
                     "Media"         :      comment_media
                 })
 
-        self.log(f'Found {len(self.fetched_comments)} comments:', mode="sub")
+        self.log(f'Found {len(self.__fetched_comments)} comments:', mode="sub")
 
 
-    def save_fetched_comments(self, delimiter="\t"):
+    def save_fetched_comments(self, file_name=None, delimiter="\t"):
         """Write fetched comments as text file"""
         self.log(f'Saving fetched comments CSV:')
 
-        self.csv_file_name = os.path.join(
-            self.csv_output_folder,
-            f'{self.title} - {self.current_date}.csv'
-        )
+        if file_name:
+            self.csv_file_name = file_name
+        else:
+            self.csv_file_name = os.path.join(
+                check_n_mkdir(self.__csv_output_folder),
+                f'{self.title} - {self.current_date}.csv'
+            )
 
+        header = self.__fetched_comments[0].keys()
 
-        header = ["Username", "TimeStamp", "ThumbUp", "ThumbDown", "Comment" ]
         with open(self.csv_file_name, "w") as w_f:
             w_f.write(f'{delimiter.join(header)}\n')
-            for comment in self.fetched_comments:
+            for comment_details in self.__fetched_comments:
                 new_line = delimiter.join([
                     str(val).replace(delimiter, "")
-                    for val in comment.values()
+                    for val in comment_details.values()
                 ])
                 w_f.write(f'{new_line}\n')
+
         self.log(f'Saved as: {self.csv_file_name}', mode="sub")
 
 
-    def draw_word_cloud(self):
+    def draw_word_cloud(self, wc_show=False, ignore_words=None):
         """Generating word cloud using the stored comments"""
-        self.log(f'Generating wordmap:')
-
         from nltk.tokenize import wordpunct_tokenize
         from wordcloud import WordCloud as wc
         import matplotlib.pyplot as plt
@@ -183,9 +258,9 @@ class YF_comments_analyzer(Logging):
         nltk.download('stopwords')
         from nltk.corpus import stopwords
 
-        # some words can be ignored, stock name and abbreviation are recommended
-        # to ignore when analyzing indivdual stock
-        comments = " ".join([x["Comment"] for x in self.fetched_comments])
+        self.log(f'Generating word cloud: [{self.title}]')
+
+        comments = " ".join([x["Comment"] for x in self.__fetched_comments])
 
         # getting set of stopwords
         _stopwords = set(stopwords.words('english'))
@@ -194,60 +269,70 @@ class YF_comments_analyzer(Logging):
 
         words_block = " ".join(list_of_words)
 
-        for word in self.ignore_words:
-            words_block = words_block.replace(word, "")
+        if ignore_words:
+            for word in ignore_words:
+                words_block = words_block.replace(word, "")
 
-        wc1 = wc(max_words=200, background_color="white").generate(words_block)
-        plt.imshow(wc1, interpolation="bilinear")
-        plt.axis("off")
-        plt.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
+        wc_graph = wc(max_words=200, background_color="white").generate(words_block)
+        self.wc_plot = plt
 
-        self.wm_file_name = os.path.join(
-            self.wordmap_output_folder,
-            f"{self.title} - {self.current_date}.JPG"
-        )
-        plt.savefig(self.wm_file_name)
+        self.wc_plot.imshow(wc_graph, interpolation="bilinear")
+        self.wc_plot.axis("off")
+        self.wc_plot.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
 
-        self.log(f'Saved as: {self.wm_file_name}', mode="sub")
+        if wc_show:
+            self.wc_plot.show()
+
+
+    def save_word_cloud(self, file_name=None):
+
+        if file_name:
+            self.wc_file_name = file_name
+        else:
+            self.wc_file_name = os.path.join(
+                check_n_mkdir(self.__wordmap_output_folder),
+                f"{self.title} - {self.current_date}.JPG"
+            )
+
+        self.log(f'Saved word cloud as: {self.wc_file_name}', mode="sub")
+        self.wc_plot.savefig(self.wc_file_name)
 
 
     def sync_outputs(self):
 
-        self.log(f'Sync S3: {self.wm_file_name}', mode="main")
+        self.log(f'Sync S3: {self.wc_file_name}', mode="main")
         os.system("aws s3 sync /home/ec2-user/web_fetcher/Saved_daily_word_maps s3://pythonic-monkey-media/Saved_daily_word_maps")
 
         self.log(f'Sync S3: {self.csv_file_name}', mode="main")
         os.system("aws s3 sync /home/ec2-user/web_fetcher/Saved_comments s3://pythonic-monkey-media/Saved_comments")
 
 
-    def fetch_data(self, instance_name, link):
-        log_name = os.path.join(
-            check_n_mkdir(CONFIG["log_output_folder"]),
-            f'{self.current_date}.log'
-        )
-        self.log_open(log_name)
+    def fetch_comments(self, instance_name, link):
+        """Getting commments from the target site"""
         self.log(f'Processing [{instance_name}]')
         try:
-            self.load_config(CONFIG)
-            self.set_up_driver_options()
             self.driver_get_link(link)
             self.driver_select_newest()
             self.driver_load_all()
             self.get_stock_info()
             self.get_comment_block_list()
             self.get_comment_info()
-            self.save_fetched_comments()
-            self.draw_word_cloud()
-            self.sync_outputs()
+
         except Exception as e:
             self.log(f'Unexpected Error occurred: {str(e)}')
         finally:
             self.driver.quit()
-            self.log_close()
 
 
 if __name__ == '__main__':
-    # download_driver()
-    analyzer = YF_comments_analyzer()
+    from config import CONFIGS, SITES
+    analyzer = YF_comments_analyzer(configs=CONFIGS)
+    analyzer.log_open()
     for instance_name, link in SITES:
-        analyzer.fetch_data(instance_name, link)
+        analyzer.fetch_comments(instance_name, link)
+        if analyzer.fetched_comments:
+            analyzer.save_fetched_comments()
+            analyzer.draw_word_cloud()
+            analyzer.save_word_cloud()
+    analyzer.sync_outputs()
+    analyzer.log_close()
