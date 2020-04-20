@@ -1,13 +1,15 @@
 # YF_comments_analyzer
 
-- Scrap Yahoo Finance comments within past 24 hours
-- Store comments locally as tab delimited csv file
+- Scrapping Yahoo Finance comments and their attributes within past 24 hours
   - Username
   - Time Stamp
   - Thumb Up count
   - Thumb Down count
   - Comment text
-- Generate corresponding WordCloud
+  - Urls
+  - Media
+- Storing comments locally as tab delimited csv file
+- Generating word cloud using fetched comments+
 
 ## Getting Started
 
@@ -19,8 +21,6 @@ Python 3.6 and up
 ```
 Modules
 ```
-beautifulsoup4==4.8.2
-bs4==0.0.1
 certifi==2019.11.28
 chardet==3.0.4
 cycler==0.10.0
@@ -39,7 +39,7 @@ soupsieve==2.0
 urllib3==1.25.8
 wordcloud==1.6.0
 ```
-Additional file - auto download for Windows users - [Link](https://chromedriver.chromium.org/downloads)
+Additional file - auto download for Windows users - [Download it yourself](https://chromedriver.chromium.org/downloads)
 ```
 chromedriver.exe
 ```
