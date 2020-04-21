@@ -1,5 +1,5 @@
-# YF_comments_analyzer
-
+# YF_comments_analyzer - [Zhiheng Dong](https://www.linkedin.com/in/zhihengdong)
+---
 - Scrapping Yahoo Finance comments and their attributes within past 24 hours
   - Username
   - Time Stamp
@@ -10,9 +10,7 @@
   - Media
 - Storing comments locally as tab delimited csv file
 - Generating word cloud using fetched comments+
-
-## Getting Started
-
+---
 ### Prerequisites
 
 Requirements
@@ -42,47 +40,50 @@ wordcloud==1.6.0
 Additional file
 ```
 chromedriver
+```
+Auto download for Windows and Linux user
 [Download <Windows>](https://chromedriver.chromium.org/downloads)
-[Download Guide <Linux>](https://medium.com/@praneeth.jm/running-chromedriver-and-selenium-in-python-on-an-aws-ec2-instance-2fb4ad633bb5)
-```
+[Download <Linux>](https://chromedriver.storage.googleapis.com)
 
+---
+### Installation
+Linux:
+`virtualenv venv`
+`venv\bin\activate` or `venv\scripts\activate`
+`pip3 install -r requirements.txt`
+Windows:
+`virtualenv venv`
+`venv\scripts\activate`
+`pip install -r requirements.txt`
 
-### Installing
-
-
-Switch to your virtualenv and run following command to install all the required modules
-
-```
-virtualenv venv
-```
-```
-pip3 install -r requirements.txt
-```
-```
-venv\bin\activate
-```
-
-## Running the tests
-
+---
+### Sample Usage - CLI
 Modifying **`SITES`** variable in config.py for custom Yahoo Finance Page
 **Please use the link for the conversation page**
+`python3 web_fetcher.py`
 
-Run following command line to start the process
-```
-python3 web_fetcher.py
-```
+---
+### Sample Usage - Import
+`from web_fetcher import YF_comments_analyzer`
 
-## Authors
+`analyzer = YF_comments_analyzer()`
+`analyzer.fetch_comments(instance_name="Sample", link="https://")` # Use the link for the conversation page
+`comments = analyzer.fetched_comments` # Get the fetched comments stored in list object
 
--   **Zhiheng Dong** -> [Linkedin](https://www.linkedin.com/in/zhihengdong)
+`analyzer.save_fetched_comments(file_name="//")` # Save the fetched comments locally
+`analyzer.draw_word_cloud(wc_show=True, ignore_words=["stock", "market"])` # Generate word cloud using the fetched comments
+`analyzer.save_word_cloud(file_name="//")` # Save the word cloud image locally
 
+---
 
-## License
+### License
 
 This project is licensed under the MIT License - see the [LICENSE.txt](https://github.com/zhiose91/web_fetcher/blob/master/LICENSE.txt)  file for details
 
-## Acknowledgments
+---
+### Acknowledgments
 
-- [CUNY_Data_Challenge_word_cloud_tutorial](https://www.kaggle.com/jelkinp72/cuny-data-challenge-word-cloud-tutorial)
-- [PurpleBooth/README-Template.md](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-- [Yaakov Bressler](https://github.com/ybressler/Web-Scraping/blob/master/Web%20Scraping%20Overview%20%E2%80%93%20NYC%20Python%20Meetup.ipynb)
+[CUNY Data Challenge word cloud_tutorial](https://www.kaggle.com/jelkinp72/cuny-data-challenge-word-cloud-tutorial)
+[PurpleBooth/README-Template.md](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
+[Yaakov Bressler' BeautifulSoup Tutorial](https://github.com/ybressler/Web-Scraping/blob/master/Web%20Scraping%20Overview%20%E2%80%93%20NYC%20Python%20Meetup.ipynb)
+[Running ChromeDriver and Selenium in Python on an AWS EC2 Instance](https://medium.com/@praneeth.jm/running-chromedriver-and-selenium-in-python-on-an-aws-ec2-instance-2fb4ad633bb5)
