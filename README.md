@@ -62,9 +62,9 @@ pip install -r requirements.txt
 ```
 ---
 ### Sample Usage - CLI
-Modifying **`SITES`** variable in config.py for custom Yahoo Finance Page
+Modifying **`SITES`** variable in config.py for custom Yahoo Finance Page -
 **Please use the link for the conversation page**
-`python3 web_fetcher.py`
+```python3 web_fetcher.py```
 
 ---
 ### Sample Usage - Import
