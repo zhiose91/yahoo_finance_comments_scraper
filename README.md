@@ -1,5 +1,6 @@
+
 # YF_comments_analyzer - [Zhiheng Dong](https://www.linkedin.com/in/zhihengdong)
----
+
 - Scrapping Yahoo Finance comments and their attributes within past 24 hours
   - Username
   - Time Stamp
@@ -9,7 +10,7 @@
   - Urls
   - Media
 - Storing comments locally as tab delimited csv file
-- Generating word cloud using fetched comments+
+- Generating word cloud using fetched comments
 ---
 ### Prerequisites
 
@@ -41,21 +42,22 @@ Additional file
 ```
 chromedriver
 ```
-Auto download for Windows and Linux user
-[Download <Windows>](https://chromedriver.chromium.org/downloads)
-[Download <Linux>](https://chromedriver.storage.googleapis.com)
+The script will auto download for [Windows](https://chromedriver.chromium.org/downloads) & [Linux](https://chromedriver.storage.googleapis.com)
 
 ---
 ### Installation
 Linux:
-`virtualenv venv`
-`venv\bin\activate` or `venv\scripts\activate`
-`pip3 install -r requirements.txt`
+```
+virtualenv venv
+venv\bin\activate
+pip3 install -r requirements.txt
+```
 Windows:
-`virtualenv venv`
-`venv\scripts\activate`
-`pip install -r requirements.txt`
-
+```
+virtualenv venv
+venv\scripts\activate
+pip install -r requirements.txt
+```
 ---
 ### Sample Usage - CLI
 Modifying **`SITES`** variable in config.py for custom Yahoo Finance Page
@@ -64,16 +66,17 @@ Modifying **`SITES`** variable in config.py for custom Yahoo Finance Page
 
 ---
 ### Sample Usage - Import
-`from web_fetcher import YF_comments_analyzer`
+```
+from web_fetcher import YF_comments_analyzer
 
-`analyzer = YF_comments_analyzer()`
-`analyzer.fetch_comments(instance_name="Sample", link="https://")` # Use the link for the conversation page
-`comments = analyzer.fetched_comments` # Get the fetched comments stored in list object
+analyzer = YF_comments_analyzer()
+analyzer.fetch_comments(instance_name="Sample", link="https://") # Use the link for the conversation page
+comments = analyzer.fetched_comments # Get the fetched comments stored in list object
 
-`analyzer.save_fetched_comments(file_name="//")` # Save the fetched comments locally
-`analyzer.draw_word_cloud(wc_show=True, ignore_words=["stock", "market"])` # Generate word cloud using the fetched comments
-`analyzer.save_word_cloud(file_name="//")` # Save the word cloud image locally
-
+analyzer.save_fetched_comments(file_name="//") # Save the fetched comments locally
+analyzer.draw_word_cloud(wc_show=True, ignore_words=["stock", "market"]) # Generate word cloud using the fetched comments
+analyzer.save_word_cloud(file_name="//") # Save the word cloud image locally
+```
 ---
 
 ### License
