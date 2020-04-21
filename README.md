@@ -88,7 +88,7 @@ This project is licensed under the MIT License - see the [LICENSE.txt](https://g
 ---
 ### Acknowledgments
 
-[CUNY Data Challenge word cloud_tutorial](https://www.kaggle.com/jelkinp72/cuny-data-challenge-word-cloud-tutorial)
-[PurpleBooth/README-Template.md](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-[Yaakov Bressler' BeautifulSoup Tutorial](https://github.com/ybressler/Web-Scraping/blob/master/Web%20Scraping%20Overview%20%E2%80%93%20NYC%20Python%20Meetup.ipynb)
-[Running ChromeDriver and Selenium in Python on an AWS EC2 Instance](https://medium.com/@praneeth.jm/running-chromedriver-and-selenium-in-python-on-an-aws-ec2-instance-2fb4ad633bb5)
+- [CUNY Data Challenge word cloud_tutorial](https://www.kaggle.com/jelkinp72/cuny-data-challenge-word-cloud-tutorial)
+- [PurpleBooth/README-Template.md](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
+- [Yaakov Bressler' BeautifulSoup Tutorial](https://github.com/ybressler/Web-Scraping/blob/master/Web%20Scraping%20Overview%20%E2%80%93%20NYC%20Python%20Meetup.ipynb)
+- [Running ChromeDriver and Selenium in Python on an AWS EC2 Instance](https://medium.com/@praneeth.jm/running-chromedriver-and-selenium-in-python-on-an-aws-ec2-instance-2fb4ad633bb5)
