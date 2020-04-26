@@ -1,4 +1,4 @@
-# YF_comments_analyzer - [Zhiheng Dong](https://www.linkedin.com/in/zhihengdong)
+# Yahoo Finance Comments Analyzer - [Zhiheng Dong](https://www.linkedin.com/in/zhihengdong)
 ---
 - Scrapping Yahoo Finance comments and their attributes within past 24 hours
   - Username
