@@ -13,7 +13,7 @@ import re
 
 class YF_comments_analyzer:
 
-    def __init__(self, configs=None):
+    def __init__(self, configs: dict={}):
 
         """"Getting xp_elems and soup_elems for json folder"""
         self.current_date = datetime.now().strftime('%b_%d_%Y')
@@ -32,7 +32,7 @@ class YF_comments_analyzer:
         return self.__log_output_folder
 
     @log_output_folder.setter
-    def log_output_folder(self, folder_name):
+    def log_output_folder(self, folder_name: str):
         self.__log_output_folder = check_n_mkdir(folder_name)
 
     @property
@@ -40,7 +40,7 @@ class YF_comments_analyzer:
         return self.__csv_output_folder
 
     @csv_output_folder.setter
-    def csv_output_folder(self, folder_name):
+    def csv_output_folder(self, folder_name: str):
         self.__csv_output_folder = check_n_mkdir(folder_name)
 
     @property
@@ -48,7 +48,7 @@ class YF_comments_analyzer:
         return self.__wordmap_output_folder
 
     @wordmap_output_folder.setter
-    def wordmap_output_folder(self, folder_name):
+    def wordmap_output_folder(self, folder_name: str):
         self.__wordmap_output_folder = check_n_mkdir(folder_name)
 
     @property
@@ -61,7 +61,7 @@ class YF_comments_analyzer:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-    def log_open(self, file_name=None):
+    def log_open(self, file_name: str=""):
         if not file_name:
             file_name = os.path.join(self.__log_output_folder, f'{self.current_date}.log')
         self.__log_file = open(file_name, "a")
@@ -94,7 +94,7 @@ class YF_comments_analyzer:
         self.xp_elems = XP_ELEMS
 
 
-    def load_config(self, configs):
+    def load_config(self, configs: dict):
         """"Loading config file"""
 
         self.log(f'Loading config file')
@@ -113,7 +113,7 @@ class YF_comments_analyzer:
         self.options.add_argument("--log-level=3")
 
 
-    def driver_get_link(self, link):
+    def driver_get_link(self, link: str):
         """Launching the driver with options and loading assigned link"""
         from selenium.common.exceptions import WebDriverException
 
@@ -179,7 +179,7 @@ class YF_comments_analyzer:
 
 
     @classmethod
-    def get_vote_ct(self, label):
+    def get_vote_ct(self, label: str):
         """Getting the number count for thumbup and thumpdown vote for each comment"""
 
         thumb_se = re.search("\d+", label)
@@ -231,7 +231,7 @@ class YF_comments_analyzer:
         self.log(f'Found {len(self.__fetched_comments)} comments:', mode="sub")
 
 
-    def save_fetched_comments(self, file_name=None, delimiter="\t"):
+    def save_fetched_comments(self, file_name: str="", delimiter: str="\t"):
         """Write fetched comments as text file"""
         self.log(f'Saving fetched comments CSV:')
 
@@ -257,7 +257,7 @@ class YF_comments_analyzer:
         self.log(f'Saved as: {self.csv_file_name}', mode="sub")
 
 
-    def draw_word_cloud(self, wc_show=False, ignore_words=None):
+    def draw_word_cloud(self, wc_show=False, ignore_words: list=[]):
         """Generating word cloud using the stored comments"""
         from nltk.tokenize import wordpunct_tokenize
         from wordcloud import WordCloud as wc
@@ -272,6 +272,8 @@ class YF_comments_analyzer:
 
         # getting set of stopwords
         _stopwords = set(stopwords.words('english'))
+        if ignore_words:
+            _stopwords.update(ignore_words)
         list_of_words = [i.lower() for i in wordpunct_tokenize(comments)
             if i.lower() not in _stopwords and i.isalpha()]
 
@@ -281,18 +283,21 @@ class YF_comments_analyzer:
             for word in ignore_words:
                 words_block = words_block.replace(word, "")
 
-        wc_graph = wc(max_words=200, background_color="white").generate(words_block)
+        wc_graph = wc(max_words=200, background_color="white",
+                                    collocations = False).generate(words_block)
         self.wc_plot = plt
 
+        self.wc_plot.figure(figsize=(12,8))
         self.wc_plot.imshow(wc_graph, interpolation="bilinear")
-        self.wc_plot.axis("off")
         self.wc_plot.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
+        self.wc_plot.axis("off")
+        self.wc_plot.tight_layout(pad=1)
 
         if wc_show:
             self.wc_plot.show()
 
 
-    def save_word_cloud(self, file_name=None):
+    def save_word_cloud(self, file_name: str=""):
 
         if file_name:
             self.wc_file_name = file_name
