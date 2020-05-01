@@ -257,7 +257,7 @@ class YF_comments_analyzer:
 
         header = self.__fetched_comments[0].keys()
 
-        with open(self.csv_file_name, "w") as w_f:
+        with open(self.csv_file_name, "w", encoding="utf-8") as w_f:
             w_f.write(f'{delimiter.join(header)}\n')
             for comment_details in self.__fetched_comments:
                 new_line = delimiter.join([
