@@ -312,7 +312,7 @@ class YF_comments_analyzer:
     def sync_outputs(self):
 
         self.log(f'Sync S3: {self.wc_file_name}', mode="main")
-        os.system("aws s3 sync /home/ec2-user/web_fetcher/Saved_daily_word_maps s3://pythonic-monkey-media/Saved_daily_word_maps")
+        os.system("aws s3 sync /home/ec2-user/web_fetcher/Saved_daily_word_clouds s3://pythonic-monkey-media/Saved_daily_word_clouds")
 
         self.log(f'Sync S3: {self.csv_file_name}', mode="main")
         os.system("aws s3 sync /home/ec2-user/web_fetcher/Saved_comments s3://pythonic-monkey-media/Saved_comments")
