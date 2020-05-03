@@ -17,11 +17,13 @@ class YF_comments_scraper:
 
         """"Getting xp_elems and soup_elems for json folder"""
         self.current_date = datetime.now().strftime('%b_%d_%Y')
-        self.__fetched_comments = []
+        self.instances = dict()
         self.__log_output_folder = check_n_mkdir("tmp")
         self.__csv_output_folder = check_n_mkdir("tmp")
-        self.__wordmap_output_folder = check_n_mkdir("tmp")
+        self.__word_cloud_output_folder = check_n_mkdir("tmp")
+        self.__json_output_folder = check_n_mkdir("tmp")
         self.__log_file = None
+
         if configs:
             self.load_config(configs)
         self.load_xp_elems()
@@ -44,12 +46,20 @@ class YF_comments_scraper:
         self.__csv_output_folder = check_n_mkdir(folder_name)
 
     @property
-    def wordmap_output_folder(self):
-        return self.__wordmap_output_folder
+    def word_cloud_output_folder(self):
+        return self.__word_cloud_output_folder
 
-    @wordmap_output_folder.setter
-    def wordmap_output_folder(self, folder_name: str):
-        self.__wordmap_output_folder = check_n_mkdir(folder_name)
+    @word_cloud_output_folder.setter
+    def word_cloud_output_folder(self, folder_name: str):
+        self.__word_cloud_output_folder = check_n_mkdir(folder_name)
+
+    @property
+    def json_output_folder(self):
+        return self.__json_output_folder
+
+    @json_output_folder.setter
+    def json_output_folder(self, folder_name: str):
+        self.__json_output_folder = check_n_mkdir(folder_name)
 
     @property
     def fetched_comments(self):
@@ -98,9 +108,10 @@ class YF_comments_scraper:
         """"Loading config file"""
 
         self.log(f'Loading config file')
-        self.__log_output_folder = check_n_mkdir(configs["log_output_folder"])
-        self.__csv_output_folder = check_n_mkdir(configs["csv_output_folder"])
-        self.__wordmap_output_folder = check_n_mkdir(configs["wordmap_output_folder"])
+        self.__log_output_folder = check_n_mkdir(configs.get("log_output_folder", "/"))
+        self.__csv_output_folder = check_n_mkdir(configs.get("csv_output_folder", "/"))
+        self.__word_cloud_output_folder = check_n_mkdir(configs.get("word_cloud_output_folder", "/"))
+        self.__json_output_folder = check_n_mkdir(configs.get("json_output_folder", "/"))
 
 
     def set_up_driver_options(self):
@@ -190,40 +201,41 @@ class YF_comments_scraper:
         from src.misc import sp_translate
         self.log(f'Fetching comments:')
 
+        self.__fetched_comments = list()
         for comment_block in self.comment_block_elem_list:
-
-            user_elem = comment_block.find_element_by_xpath(self.xp_elems["comment_user"])
             time_stamp_elem = comment_block.find_element_by_xpath(self.xp_elems["time_stamp"])
-            comment_text_elem = comment_block.find_element_by_xpath(self.xp_elems["comment_text"])
-
-            comment_thumbup_elem = comment_block.find_element_by_xpath(self.xp_elems["thumbup"])
-            comment_thumbdown_elem = comment_block.find_element_by_xpath(self.xp_elems["thumbdown"])
-
-            comment_url_elems = comment_text_elem.find_elements_by_xpath(self.xp_elems["comment_urls"])
-            comment_media_elems = comment_text_elem.find_elements_by_xpath(self.xp_elems["comment_media"])
-
-            thumb_up_ct = self.get_vote_ct(comment_thumbup_elem.get_attribute('aria-label'))
-            thumb_down_ct = self.get_vote_ct(comment_thumbdown_elem.get_attribute('aria-label'))
-
-            comment_text = comment_text_elem.text.replace("\n", " ")
-            comment_urls = [url.text for url in comment_url_elems if url.text != ""]
-
-            if comment_urls:
-                for url in comment_urls:
-                    comment_text = comment_text.replace(url ," ")
-
-            comment_media = [media.get_attribute("src") for media in comment_media_elems]
 
             if re.match(r".*(second|minute|hour).*", time_stamp_elem.text):
+
+                user_elem = comment_block.find_element_by_xpath(self.xp_elems["comment_user"])
+                comment_text_elem = comment_block.find_element_by_xpath(self.xp_elems["comment_text"])
+
+                comment_thumbup_elem = comment_block.find_element_by_xpath(self.xp_elems["thumbup"])
+                comment_thumbdown_elem = comment_block.find_element_by_xpath(self.xp_elems["thumbdown"])
+
+                comment_url_elems = comment_text_elem.find_elements_by_xpath(self.xp_elems["comment_urls"])
+                comment_media_elems = comment_text_elem.find_elements_by_xpath(self.xp_elems["comment_media"])
+
+                thumb_up_ct = self.get_vote_ct(comment_thumbup_elem.get_attribute('aria-label'))
+                thumb_down_ct = self.get_vote_ct(comment_thumbdown_elem.get_attribute('aria-label'))
+
+                comment_text = comment_text_elem.text.replace("\n", " ")
+                comment_urls = [url.text for url in comment_url_elems if url.text != ""]
+
+                if comment_urls:
+                    for url in comment_urls:
+                        comment_text = comment_text.replace(url ," ")
+
+                comment_media = [media.get_attribute("src") for media in comment_media_elems]
 
                 self.__fetched_comments.append({
                     "Username"      :      user_elem.text,
                     "TimeStamp"     :      time_stamp_elem.text,
                     "ThumbUp"       :      thumb_up_ct,
                     "ThumbDown"     :      thumb_down_ct,
-                    "Comment"       :      sp_translate(comment_text),
-                    "Url"           :      comment_urls,
-                    "Media"         :      comment_media
+                    "CommentText"   :      sp_translate(comment_text),
+                    "CommentUrl"    :      comment_urls,
+                    "CommentMedia"  :      comment_media
                 })
 
         self.log(f'Found {len(self.__fetched_comments)} comments:', mode="sub")
@@ -243,7 +255,7 @@ class YF_comments_scraper:
 
         header = self.__fetched_comments[0].keys()
 
-        with open(self.csv_file_name, "w") as w_f:
+        with open(self.csv_file_name, "w", encoding="utf-8") as w_f:
             w_f.write(f'{delimiter.join(header)}\n')
             for comment_details in self.__fetched_comments:
                 new_line = delimiter.join([
@@ -266,7 +278,7 @@ class YF_comments_scraper:
 
         self.log(f'Generating word cloud: [{self.title}]')
 
-        comments = " ".join([x["Comment"] for x in self.__fetched_comments])
+        comments = " ".join([x["CommentText"] for x in self.__fetched_comments])
 
         # getting set of stopwords
         _stopwords = set(stopwords.words('english'))
@@ -296,18 +308,47 @@ class YF_comments_scraper:
 
 
     def save_word_cloud(self, file_name: str=""):
-
+        """Save word cloud locally"""
         if file_name:
             self.wc_file_name = file_name
         else:
             self.wc_file_name = os.path.join(
-                check_n_mkdir(self.__wordmap_output_folder),
+                check_n_mkdir(self.__word_cloud_output_folder),
                 f"{self.title} - {self.current_date}.JPG"
             )
 
         self.log(f'Saved word cloud as: {self.wc_file_name}', mode="sub")
         self.wc_plot.savefig(self.wc_file_name)
 
+
+    def save_instance_info(self):
+        """Save instance inforation and push it to instances dict"""
+        self.log(f'Generating instance json: [{self.title}]')
+
+        self.instances.update({
+            self.title: {
+                "index"     : self.index,
+                "movement"  : self.movement,
+                "comments"  : self.fetched_comments
+            }
+        })
+
+
+    def dump_instance_json(self, file_name: str=""):
+        """Save fetched instances info in json file"""
+        import json
+
+        if file_name:
+            self.instance_json_file_name = file_name
+        else:
+            self.instance_json_file_name = os.path.join(
+                check_n_mkdir(self.__json_output_folder),
+                f"{self.current_date}.json"
+            )
+
+        self.log(f'Saved fetched instances info as: {self.instance_json_file_name}', mode="sub")
+        with open(self.instance_json_file_name, "w") as w_f:
+            json.dump(self.instances, w_f)
 
     def sync_outputs(self):
 
@@ -320,15 +361,15 @@ class YF_comments_scraper:
 
     def fetch_comments(self, instance_name, link):
         """Getting commments from the target site"""
-        self.log(f'Processing [{instance_name}]')
         try:
             self.driver_get_link(link)
+            self.log(f'Processing [{instance_name}]')
             self.driver_select_newest()
             self.driver_load_all()
             self.get_stock_info()
             self.get_comment_block_list()
             self.get_comment_info()
-
+            self.save_instance_info()
         except Exception as e:
             self.log(f'Unexpected Error occurred: {str(e)}')
         finally:
@@ -345,5 +386,6 @@ if __name__ == '__main__':
             scraper.save_fetched_comments()
             scraper.draw_word_cloud(ignore_words=["stock", "market"])
             scraper.save_word_cloud()
+    scraper.dump_instance_json()
     scraper.sync_outputs()
     scraper.log_close()

@@ -1,6 +1,7 @@
 CONFIGS = {
     "csv_output_folder"       :   r"/home/ec2-user/web_fetcher/Saved_comments",
-    "wordmap_output_folder"   :   r"/home/ec2-user/web_fetcher/Saved_daily_word_clouds",
+    "json_output_folder"      :   r"/home/ec2-user/web_fetcher/Saved_comments",
+    "word_cloud_output_folder":   r"/home/ec2-user/web_fetcher/Saved_daily_word_clouds",
     "log_output_folder"       :   r"/home/ec2-user/web_fetcher/Work_log",
 }
 
