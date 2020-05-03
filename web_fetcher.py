@@ -178,6 +178,8 @@ class YF_comments_scraper:
         self.log(f'Index: {self.index}', mode="sub")
 
         self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
+        self.movem_perc = float(re.search("([+-]\d{1,}\.\d{2})%", self.movement).group(1))
+        self.movem_val = float(re.search("([+-]\d{1,}\.\d{2}) ", self.movement).group(1))
         self.log(f'Movement: {self.movement}', mode="sub")
 
 
@@ -269,16 +271,12 @@ class YF_comments_scraper:
         self.log(f'Saved as: {self.csv_file_name}', mode="sub")
 
 
-    def draw_word_cloud(self, wc_show=False, ignore_words: list=[]):
-        """Generating word cloud using the stored comments"""
+    def get_chunck_of_words(self, ignore_words: list=[]):
+        """Generating chunck of words with no stopwords"""
         from nltk.tokenize import wordpunct_tokenize
-        from wordcloud import WordCloud as wc
-        import matplotlib.pyplot as plt
         import nltk
         nltk.download('stopwords')
         from nltk.corpus import stopwords
-
-        self.log(f'Generating word cloud: [{self.title}]')
 
         comments = " ".join([x["CommentText"] for x in self.__fetched_comments])
 
@@ -289,14 +287,20 @@ class YF_comments_scraper:
         list_of_words = [i.lower() for i in wordpunct_tokenize(comments)
             if i.lower() not in _stopwords and i.isalpha()]
 
-        words_block = " ".join(list_of_words)
+        self.words_chunck = " ".join(list_of_words)
 
-        if ignore_words:
-            for word in ignore_words:
-                words_block = words_block.replace(word, "")
 
-        wc_graph = wc(max_words=200, background_color="white",
-                                    collocations = False).generate(words_block)
+    def draw_word_cloud(self, wc_show=False):
+        """Generating word cloud using the stored comments"""
+        from wordcloud import WordCloud as wc
+        import matplotlib.pyplot as plt
+
+        self.log(f'Generating word cloud: [{self.title}]')
+
+        wc_graph = wc(
+            max_words=200, background_color="white",
+            collocations = False).generate(self.words_chunck)
+
         self.wc_plot = plt
 
         self.wc_plot.figure(figsize=(12,8))
@@ -327,11 +331,19 @@ class YF_comments_scraper:
         """Save instance inforation and push it to instances dict"""
         self.log(f'Generating instance json: [{self.title}]')
 
+        columns = list(self.fetched_comments[0].keys())
+        values = [list(c.values()) for c in self.fetched_comments]
         self.instances.update({
             self.title: {
-                "index"     : self.index,
+                "ins_title" : self.title,
+                "ins_index" : self.index,
                 "movement"  : self.movement,
-                "comments"  : self.fetched_comments
+                "movem_perc": self.movem_perc,
+                "movem_val" : self.movem_val,
+                "comments"  : {
+                        "columns" : columns,
+                        "data"    : values
+                    }
             }
         })
 
@@ -378,7 +390,8 @@ if __name__ == '__main__':
         scraper.fetch_comments(instance_name, link)
         if scraper.fetched_comments:
             scraper.save_fetched_comments()
-            scraper.draw_word_cloud(ignore_words=["stock", "market"])
+            scraper.get_chunck_of_words(ignore_words=["stock", "market"])
+            scraper.draw_word_cloud()
             scraper.save_word_cloud()
     scraper.dump_instance_json()
     scraper.log_close()
