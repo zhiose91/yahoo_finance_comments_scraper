@@ -1,7 +1,7 @@
 
-# Yahoo Finance Comments Scraper - [Zhiheng Dong](https://www.linkedin.com/in/zhihengdong)
+# Yahoo Finance Comments Analyzer - [Zhiheng Dong](https://www.linkedin.com/in/zhihengdong)
 ---
-- Scraping Yahoo Finance comments and their attributes within past 24 hours
+- Scrapping Yahoo Finance comments and their attributes within past 24 hours
   - Username
   - Time Stamp
   - Thumb Up count
@@ -70,15 +70,15 @@ Modifying **`SITES`** variable in config.py for custom Yahoo Finance Page -
 ---
 ### Sample Usage - Import
 ```
-from web_fetcher import YF_comments_scraper
+from web_fetcher import YF_comments_analyzer
 
-scraper = YF_comments_scraper()
-scraper.fetch_comments(instance_name="Sample", link="https://") # Use the link for the conversation page
-comments = scraper.fetched_comments # Get the fetched comments stored in list object
+analyzer = YF_comments_analyzer()
+analyzer.fetch_comments(instance_name="Sample", link="https://") # Use the link for the conversation page
+comments = analyzer.fetched_comments # Get the fetched comments stored in list object
 
-scraper.save_fetched_comments(file_name="//") # Save the fetched comments locally
-scraper.draw_word_cloud(wc_show=True, ignore_words=["stock", "market"]) # Generate word cloud using the fetched comments
-scraper.save_word_cloud(file_name="//") # Save the word cloud image locally
+analyzer.save_fetched_comments(file_name="//") # Save the fetched comments locally
+analyzer.draw_word_cloud(wc_show=True, ignore_words=["stock", "market"]) # Generate word cloud using the fetched comments
+analyzer.save_word_cloud(file_name="//") # Save the word cloud image locally
 ```
 ---
 
