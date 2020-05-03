@@ -11,7 +11,7 @@ import os
 import re
 
 
-class YF_comments_analyzer:
+class YF_comments_scraper:
 
     def __init__(self, configs: dict={}):
 
@@ -372,13 +372,13 @@ class YF_comments_analyzer:
 
 if __name__ == '__main__':
     from config import CONFIGS, SITES
-    analyzer = YF_comments_analyzer(configs=CONFIGS)
-    analyzer.log_open()
+    scraper = YF_comments_scraper(configs=CONFIGS)
+    scraper.log_open()
     for instance_name, link in SITES:
-        analyzer.fetch_comments(instance_name, link)
-        if analyzer.fetched_comments:
-            analyzer.save_fetched_comments()
-            analyzer.draw_word_cloud(ignore_words=["stock", "market"])
-            analyzer.save_word_cloud()
-    analyzer.dump_instance_json()
-    analyzer.log_close()
+        scraper.fetch_comments(instance_name, link)
+        if scraper.fetched_comments:
+            scraper.save_fetched_comments()
+            scraper.draw_word_cloud(ignore_words=["stock", "market"])
+            scraper.save_word_cloud()
+    scraper.dump_instance_json()
+    scraper.log_close()
