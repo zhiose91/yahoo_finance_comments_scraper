@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from datetime import datetime
+from datetime import datetime, timedelta
 from src.misc import check_n_mkdir
 import time
 import os
@@ -16,7 +16,8 @@ class YF_comments_scraper:
     def __init__(self, configs: dict={}):
 
         """"Getting xp_elems and soup_elems for json folder"""
-        self.current_date = datetime.now().strftime('%b_%d_%Y')
+        self.log_datetime = datetime.now()
+        self.log_date_str = datetime.now().strftime('%b_%d_%Y')
         self.instances = dict()
         self.__log_output_folder = check_n_mkdir("tmp")
         self.__csv_output_folder = check_n_mkdir("tmp")
@@ -73,7 +74,7 @@ class YF_comments_scraper:
 
     def log_open(self, file_name: str=""):
         if not file_name:
-            file_name = os.path.join(self.__log_output_folder, f'{self.current_date}.log')
+            file_name = os.path.join(self.__log_output_folder, f'{self.log_date_str}.log')
         self.__log_file = open(file_name, "a")
 
 
@@ -198,11 +199,32 @@ class YF_comments_scraper:
             return int(thumb_se.group(0))
         return 0
 
+    def get_post_time(self, time_stamp_text):
+        """Getting the post time and total_minutes from the time_stamp_text"""
+
+        time_pattern = "(\d+) (minute|hour)"
+        result = re.search(time_pattern, time_stamp_text)
+        time_digit = int(result.group(1))
+        time_type = result.group(2)
+
+        minutes = hours = 0
+        if time_type == "minute":
+            minutes = time_digit
+        elif time_type == "hour":
+            hours = time_digit
+
+        duration = timedelta(hours=hours, minutes=minutes)
+
+        post_time = self.log_datetime - duration
+        total_minutes = int(duration.total_seconds()/60)
+
+        return post_time.strftime("%H:%M"), total_minutes
     def get_comment_info(self):
         """Printin comment inforation and storing all comments"""
         from src.misc import sp_translate
         self.log(f'Fetching comments:')
 
+        self.log_datetime = datetime.now()
         self.__fetched_comments = list()
         for comment_block in self.comment_block_elem_list:
             time_stamp_elem = comment_block.find_element_by_xpath(self.xp_elems["time_stamp"])
@@ -230,9 +252,11 @@ class YF_comments_scraper:
 
                 comment_media = [media.get_attribute("src") for media in comment_media_elems]
 
+                post_time, total_minutes = self.get_post_time(time_stamp_elem.text)
                 self.__fetched_comments.append({
-                    "Username"      :      user_elem.text,
-                    "TimeStamp"     :      time_stamp_elem.text,
+                    "UserName"      :      user_elem.text,
+                    "PostTime"      :      post_time,
+                    "DurationMins"  :      total_minutes,
                     "ThumbUp"       :      thumb_up_ct,
                     "ThumbDown"     :      thumb_down_ct,
                     "CommentText"   :      sp_translate(comment_text),
@@ -252,7 +276,7 @@ class YF_comments_scraper:
         else:
             self.csv_file_name = os.path.join(
                 check_n_mkdir(self.__csv_output_folder),
-                f'{self.title} - {self.current_date}.csv'
+                f'{self.title} - {self.log_date_str}.csv'
             )
 
         header = self.__fetched_comments[0].keys()
@@ -318,7 +342,7 @@ class YF_comments_scraper:
         else:
             self.wc_file_name = os.path.join(
                 check_n_mkdir(self.__word_cloud_output_folder),
-                f"{self.title} - {self.current_date}.JPG"
+                f"{self.title} - {self.log_date_str}.JPG"
             )
 
         self.log(f'Saved word cloud as: {self.wc_file_name}', mode="sub")
@@ -355,7 +379,7 @@ class YF_comments_scraper:
         else:
             self.instance_json_file_name = os.path.join(
                 check_n_mkdir(self.__json_output_folder),
-                f"{self.current_date}.json"
+                f"{self.log_date_str}.json"
             )
 
         self.log(f'Saved fetched instances info as: {self.instance_json_file_name}', mode="sub")
