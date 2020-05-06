@@ -18,7 +18,7 @@ class YF_comments_scraper:
         """"Getting xp_elems and soup_elems for json folder"""
         self.log_datetime = datetime.now()
         self.log_date_str = datetime.now().strftime('%b_%d_%Y')
-        self.instances = dict()
+        self.fetched_instances = dict()
         self.__log_output_folder = check_n_mkdir("tmp")
         self.__csv_output_folder = check_n_mkdir("tmp")
         self.__word_cloud_output_folder = check_n_mkdir("tmp")
@@ -170,11 +170,11 @@ class YF_comments_scraper:
         """Printing stock information including name, index, and movement"""
         self.log(f'Getting instance information')
 
-        self.title = self.driver.find_element_by_xpath(self.xp_elems["title"]).text
-        self.log(f'Title: {self.title}', mode="sub")
+        self.ins_title = self.driver.find_element_by_xpath(self.xp_elems["title"]).text
+        self.log(f'Title: {self.ins_title}', mode="sub")
 
-        self.index = self.driver.find_element_by_xpath(self.xp_elems["index"]).text
-        self.log(f'Index: {self.index}', mode="sub")
+        self.ins_index = self.driver.find_element_by_xpath(self.xp_elems["index"]).text
+        self.log(f'Index: {self.ins_index}', mode="sub")
 
         self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
         self.movem_perc = float(re.search("([+-]\d{1,}\.\d{2})%", self.movement).group(1))
@@ -276,7 +276,7 @@ class YF_comments_scraper:
         else:
             self.csv_file_name = os.path.join(
                 check_n_mkdir(self.__csv_output_folder),
-                f'{self.title} - {self.log_date_str}.csv'
+                f'{self.ins_title} - {self.log_date_str}.csv'
             )
 
         header = self.__fetched_comments[0].keys()
@@ -317,7 +317,7 @@ class YF_comments_scraper:
         from wordcloud import WordCloud as wc
         import matplotlib.pyplot as plt
 
-        self.log(f'Generating word cloud: [{self.title}]')
+        self.log(f'Generating word cloud: [{self.ins_title}]')
 
         wc_graph = wc(
             max_words=200, background_color="white",
@@ -327,7 +327,7 @@ class YF_comments_scraper:
 
         self.wc_plot.figure(figsize=(12,8))
         self.wc_plot.imshow(wc_graph, interpolation="bilinear")
-        self.wc_plot.title(f"[{self.title}]\n[{self.index}]  [{self.movement}]")
+        self.wc_plot.title(f"[{self.ins_title}]\n[{self.ins_index}]  [{self.movement}]")
         self.wc_plot.axis("off")
         self.wc_plot.tight_layout(pad=1)
 
@@ -342,7 +342,7 @@ class YF_comments_scraper:
         else:
             self.wc_file_name = os.path.join(
                 check_n_mkdir(self.__word_cloud_output_folder),
-                f"{self.title} - {self.log_date_str}.JPG"
+                f"{self.ins_title} - {self.log_date_str}.JPG"
             )
 
         self.log(f'Saved word cloud as: {self.wc_file_name}', mode="sub")
@@ -351,14 +351,14 @@ class YF_comments_scraper:
 
     def save_instance_info(self):
         """Save instance inforation and push it to instances dict"""
-        self.log(f'Generating instance json: [{self.title}]')
+        self.log(f'Generating instance json: [{self.ins_title}]')
 
         columns = list(self.fetched_comments[0].keys())
         values = [list(c.values()) for c in self.fetched_comments]
-        self.instances.update({
-            self.title: {
-                "ins_title" : self.title,
-                "ins_index" : self.index,
+        self.fetched_instances.update({
+            self.ins_title: {
+                "ins_title" : self.ins_title,
+                "ins_index" : self.ins_index,
                 "movement"  : self.movement,
                 "movem_perc": self.movem_perc,
                 "movem_val" : self.movem_val,
@@ -384,7 +384,8 @@ class YF_comments_scraper:
 
         self.log(f'Saved fetched instances info as: {self.instance_json_file_name}', mode="sub")
         with open(self.instance_json_file_name, "w") as w_f:
-            json.dump(self.instances, w_f)
+            json.dump(self.fetched_instances, w_f)
+
 
     def sync_outputs(self):
 
