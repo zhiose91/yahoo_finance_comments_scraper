@@ -418,7 +418,3 @@ class YF_comments_scraper:
                 return self.fetched_comments
             except AttributeError:
                 return list()
-
-
-if __name__ == '__main__':
-    from config import CONFIGS, SITES
