@@ -17,8 +17,8 @@ class YF_comments_scraper:
 
         """"Getting xp_elems and soup_elems for json folder"""
         self.log_datetime = datetime.now()
-        self.log_date_str = datetime.now().strftime('%b_%d_%Y')
-        self.fetched_instances = dict()
+        self.log_date_str = datetime.now().strftime('%Y-%m-%d')
+        self.__fetched_instances = dict()
         self.__log_output_folder = check_n_mkdir("tmp")
         self.__csv_output_folder = check_n_mkdir("tmp")
         self.__word_cloud_output_folder = check_n_mkdir("tmp")
@@ -65,6 +65,10 @@ class YF_comments_scraper:
     @property
     def fetched_comments(self):
         return self.__fetched_comments
+
+    @property
+    def fetched_instances(self):
+        return self.__fetched_instances
 
 
     @classmethod
@@ -175,7 +179,9 @@ class YF_comments_scraper:
         self.ins_title = self.driver.find_element_by_xpath(self.xp_elems["title"]).text
         self.log(f'Title: {self.ins_title}', mode="sub")
 
-        self.ins_index = self.driver.find_element_by_xpath(self.xp_elems["index"]).text
+        self.ins_index = float(self.driver.find_element_by_xpath(
+            self.xp_elems["index"]).text.replace(",", "")
+        )
         self.log(f'Index: {self.ins_index}', mode="sub")
 
         self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
@@ -357,23 +363,23 @@ class YF_comments_scraper:
 
     def save_instance_info(self):
         """Save instance inforation and push it to instances dict"""
-        self.log(f'Generating instance json: [{self.ins_title}]')
-
-        columns = list(self.fetched_comments[0].keys())
-        values = [list(c.values()) for c in self.fetched_comments]
-        self.fetched_instances.update({
-            self.ins_title: {
-                "ins_title" : self.ins_title,
-                "ins_index" : self.ins_index,
-                "movement"  : self.movement,
-                "movem_perc": self.movem_perc,
-                "movem_val" : self.movem_val,
-                "comments"  : {
-                        "columns" : columns,
-                        "data"    : values
-                    }
-            }
-        })
+        if self.fetched_comments:
+            self.log(f'Generating instance json: [{self.ins_title}]')
+            data_values = [list(c.values()) for c in self.fetched_comments]
+            data_columns = list(self.fetched_comments[0].keys())
+            self.__fetched_instances.update({
+                self.ins_title: {
+                    "ins_title" : self.ins_title,
+                    "ins_index" : self.ins_index,
+                    "movem_str" : self.movement,
+                    "movem_perc": self.movem_perc,
+                    "movem_val" : self.movem_val,
+                    "columns"   : data_columns,
+                    "comments"  : {
+                            "data"    : data_values
+                        }
+                }
+            })
 
 
     def dump_instance_json(self, file_name: str=""):
@@ -390,7 +396,7 @@ class YF_comments_scraper:
 
         self.log(f'Saved fetched instances info as: {self.instance_json_file_name}', mode="sub")
         with open(self.instance_json_file_name, "w") as w_f:
-            json.dump(self.fetched_instances, w_f)
+            json.dump(self.__fetched_instances, w_f)
 
 
     def fetch_comments(self, instance_name, link):
@@ -408,6 +414,10 @@ class YF_comments_scraper:
             self.log(f'Unexpected Error occurred: {str(e)}')
         finally:
             self.driver.quit()
+            try:
+                return self.fetched_comments
+            except AttributeError:
+                return list()
 
 
 if __name__ == '__main__':
