@@ -62,9 +62,4 @@ class Comment_loader:
         else:
             print("Table created:", table_name)
             self.table = self.create_comment_table(table_name)
-
-if __name__ == '__main__':
-    loader = Comment_loader()
-    loader.connect_to_db("Test", "Test")
-    # loader.connect_to_db()
-    loader.set_table("Yahoo_fin_comment")
+ 
