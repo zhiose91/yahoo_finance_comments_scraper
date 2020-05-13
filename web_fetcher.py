@@ -422,14 +422,3 @@ class YF_comments_scraper:
 
 if __name__ == '__main__':
     from config import CONFIGS, SITES
-    scraper = YF_comments_scraper(configs=CONFIGS)
-    scraper.log_open()
-    for instance_name, link in SITES:
-        scraper.fetch_comments(instance_name, link)
-        if scraper.fetched_comments:
-            scraper.save_fetched_comments()
-            scraper.get_chunck_of_words(ignore_words=["stock", "market"])
-            scraper.draw_word_cloud()
-            scraper.save_word_cloud()
-    scraper.dump_instance_json()
-    scraper.log_close()
