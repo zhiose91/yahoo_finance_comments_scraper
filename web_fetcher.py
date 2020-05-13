@@ -127,6 +127,7 @@ class YF_comments_scraper:
         self.options.add_argument('--ignore-ssl-errors')
         self.options.add_argument('headless')
         self.options.add_argument("--log-level=3")
+        self.options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
 
     def driver_get_link(self, link: str):
@@ -179,14 +180,12 @@ class YF_comments_scraper:
         self.ins_title = self.driver.find_element_by_xpath(self.xp_elems["title"]).text
         self.log(f'Title: {self.ins_title}', mode="sub")
 
-        self.ins_index = float(self.driver.find_element_by_xpath(
-            self.xp_elems["index"]).text.replace(",", "")
-        )
+        self.ins_index = self.driver.find_element_by_xpath(self.xp_elems["index"]).text.replace(",", "")
         self.log(f'Index: {self.ins_index}', mode="sub")
 
         self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
-        self.movem_perc = float(re.search("([+-]\d{1,}\.\d{2})%", self.movement).group(1))
-        self.movem_val = float(re.search("([+-]\d{1,}\.\d{2}) ", self.movement).group(1))
+        self.movem_perc = re.search("([+-]\d{1,}\.\d{2})%", self.movement).group(1)
+        self.movem_val = re.search("([+-]\d{1,}\.\d{2}) ", self.movement).group(1)
         self.log(f'Movement: {self.movement}', mode="sub")
 
 
@@ -255,6 +254,7 @@ class YF_comments_scraper:
                 thumb_down_ct = self.get_vote_ct(comment_thumbdown_elem.get_attribute('aria-label'))
 
                 comment_text = comment_text_elem.text.replace("\n", " ")
+                if comment_text == "": comment_text = "Empty-Comment"
                 comment_urls = [url.text for url in comment_url_elems if url.text != ""]
 
                 if comment_urls:
@@ -271,7 +271,7 @@ class YF_comments_scraper:
                     "DurationMins"  :      total_minutes,
                     "ThumbUp"       :      thumb_up_ct,
                     "ThumbDown"     :      thumb_down_ct,
-                    "CommentText"   :      sp_translate(comment_text),
+                    "CommentText"   :      sp_translate(comment_text), # filter out special characters
                     "CommentUrl"    :      comment_urls,
                     "CommentMedia"  :      comment_media
                 })
@@ -363,28 +363,32 @@ class YF_comments_scraper:
 
     def save_instance_info(self):
         """Save instance inforation and push it to instances dict"""
+        import decimal
+
         if self.fetched_comments:
-            self.log(f'Generating instance json: [{self.ins_title}]')
-            data_values = [list(c.values()) for c in self.fetched_comments]
-            data_columns = list(self.fetched_comments[0].keys())
+            self.log(f'Generating instance [{self.ins_title}]')
+            data_cols = list(self.fetched_comments[0].keys())
+            data_vals = [list(c.values()) for c in self.fetched_comments]
             self.__fetched_instances.update({
                 self.ins_title: {
-                    "ins_title" : self.ins_title,
-                    "ins_index" : self.ins_index,
-                    "movem_str" : self.movement,
-                    "movem_perc": self.movem_perc,
-                    "movem_val" : self.movem_val,
-                    "columns"   : data_columns,
-                    "comments"  : {
-                            "data"    : data_values
+                    "ins_title"     :   self.ins_title,
+                    "ins_index"     :   decimal.Decimal(self.ins_index),
+                    "fetched_date"  :   self.log_date_str,
+                    "movem_str"     :   self.movement,
+                    "movem_perc"    :   decimal.Decimal(self.movem_perc),
+                    "movem_val"     :   decimal.Decimal(self.movem_val),
+                    "comments"      :   {
+                        "data_cols" : data_cols,
+                        "data_vals" : data_vals
                         }
-                }
+                    }
             })
 
 
     def dump_instance_json(self, file_name: str=""):
         """Save fetched instances info in json file"""
         import json
+        from src.misc import DecimalEncoder
 
         if file_name:
             self.instance_json_file_name = file_name
@@ -396,7 +400,7 @@ class YF_comments_scraper:
 
         self.log(f'Saved fetched instances info as: {self.instance_json_file_name}', mode="sub")
         with open(self.instance_json_file_name, "w") as w_f:
-            json.dump(self.__fetched_instances, w_f)
+            json.dump(self.__fetched_instances, w_f, indent=4, cls=DecimalEncoder)
 
 
     def fetch_comments(self, instance_name, link):
