@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from web_fetcher import YF_comments_scraper
-
+from dynamodb_utils import Comment_loader
 
 
 CONFIGS = {
@@ -25,3 +25,5 @@ scraper = YF_comments_scraper(configs=CONFIGS)
 for instance_name, link in SITES:
     scraper.fetch_comments(instance_name, link)
 scraper.dump_instance_json()
+
+loader = Comment_loader()
