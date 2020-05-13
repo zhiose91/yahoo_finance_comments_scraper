@@ -177,7 +177,9 @@ class YF_comments_scraper:
         self.ins_title = self.driver.find_element_by_xpath(self.xp_elems["title"]).text
         self.log(f'Title: {self.ins_title}', mode="sub")
 
-        self.ins_index = float(self.driver.find_element_by_xpath(self.xp_elems["index"]).text)
+        self.ins_index = float(self.driver.find_element_by_xpath(
+            self.xp_elems["index"]).text.replace(",", "")
+        )
         self.log(f'Index: {self.ins_index}', mode="sub")
 
         self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
@@ -409,29 +411,13 @@ class YF_comments_scraper:
             self.driver_load_all()
             self.get_stock_info()
             self.get_comment_block_list()
-            self.save_instance_info()
             self.get_comment_info()
+            self.save_instance_info()
         except Exception as e:
             self.log(f'Unexpected Error occurred: {str(e)}')
         finally:
             self.driver.quit()
             try:
-                return self.__fetched_comments
+                return self.fetched_comments
             except AttributeError:
                 return list()
-
-
-if __name__ == '__main__':
-    from config import CONFIGS, SITES
-    scraper = YF_comments_scraper(configs=CONFIGS)
-    scraper.log_open()
-    for instance_name, link in SITES:
-        scraper.fetch_comments(instance_name, link)
-        if scraper.fetched_comments:
-            scraper.save_fetched_comments()
-            scraper.get_chunck_of_words(ignore_words=["stock", "market"])
-            scraper.draw_word_cloud()
-            scraper.save_word_cloud()
-    scraper.dump_instance_json()
-    scraper.sync_outputs()
-    scraper.log_close()
