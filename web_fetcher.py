@@ -184,10 +184,11 @@ class YF_comments_scraper:
         self.log(f'Index: {self.ins_index}', mode="sub")
 
         self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
-        self.movem_perc = re.search("([+-]\d{1,}\.\d{2})%", self.movement).group(1)
-        self.movem_val = re.search("([+-]\d{1,}\.\d{2}) ", self.movement).group(1)
-        self.log(f'Movement: {self.movement}', mode="sub")
+        movem_temp = self.movement.split(" ")
+        self.movem_val = movem_temp[0]
+        self.movem_perc = movem_temp[1][1:-2]
 
+        self.log(f'Movement: {self.movement}', mode="sub")
 
     def get_comment_block_list(self):
         """Getting the soup objects for each comment block"""
