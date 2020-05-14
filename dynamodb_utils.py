@@ -16,12 +16,12 @@ class Comment_loader:
                 aws_access_key_id=aws_access_key_id,
                 aws_secret_access_key=aws_secret_access_key
             )
-            self.dynamodb = session.resource('dynamodb', region_name='us-east-1', endpoint_url="http://localhost:8000")
-            self.db_client = session.client('dynamodb', region_name='us-east-1', endpoint_url="http://localhost:8000")
+            self.dynamodb = session.resource('dynamodb', region_name='us-east-1')
+            self.db_client = session.client('dynamodb', region_name='us-east-1')
             print("connected using keypairs")
         else:
-            self.dynamodb = boto3.resource('dynamodb', region_name='us-east-1', endpoint_url="http://localhost:8000")
-            self.db_client = session.client('dynamodb', region_name='us-east-1', endpoint_url="http://localhost:8000")
+            self.dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+            self.db_client = session.client('dynamodb', region_name='us-east-1')
             print("connected using without keypairs")
 
 
@@ -63,8 +63,3 @@ class Comment_loader:
             print("Table created:", table_name)
             self.table = self.create_comment_table(table_name)
 
-if __name__ == '__main__':
-    loader = Comment_loader()
-    loader.connect_to_db("Test", "Test")
-    # loader.connect_to_db()
-    loader.set_table("Yahoo_fin_comment")
