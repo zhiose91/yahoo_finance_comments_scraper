@@ -21,7 +21,7 @@ class Comment_loader:
             print("connected using keypairs")
         else:
             self.dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-            self.db_client = session.client('dynamodb', region_name='us-east-1')
+            self.db_client = boto3.client('dynamodb', region_name='us-east-1')
             print("connected using without keypairs")
 
 
