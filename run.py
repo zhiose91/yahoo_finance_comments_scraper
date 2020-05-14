@@ -27,3 +27,21 @@ for instance_name, link in SITES:
 scraper.dump_instance_json()
 
 loader = Comment_loader()
+loader.connect_to_db()
+loader.set_table("Yahoo_fin_comment")
+
+for ins_title, ins_info in scraper.fetched_instances.items():
+    scraper.log(
+        f"Dynamodb-Ops: Inserting pKey:[{ins_title}] sKey:[{ins_info['fetched_date']}]",
+        mode="main"
+    )
+
+    loader.table.put_item(
+        Item={
+            "instance_name" : ins_info["ins_title"],
+            "fetched_date"  : ins_info["fetched_date"],
+            "fetch_info"    : ins_info
+        }
+    )
+
+    scraper.log(f"Dynamodb-Ops: Valid insertion", mode="sub")
