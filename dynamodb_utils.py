@@ -56,10 +56,9 @@ class Comment_loader:
 
 
     def set_table(self, table_name: str):
-        if table_name in self.db_client.list_tables()["TableNames"]:
-            print("Table found:", table_name)
-            self.table = self.dynamodb.Table(table_name)
-        else:
-            print("Table created:", table_name)
+        if table_name not in self.db_client.list_tables()["TableNames"]:
             self.table = self.create_comment_table(table_name)
+            print("Table created:", table_name)
 
+        self.table = self.dynamodb.Table(table_name)
+        print("Table found:", table_name)
