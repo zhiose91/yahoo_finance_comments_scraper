@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
 
 
 class Comment_loader:
@@ -62,4 +61,3 @@ class Comment_loader:
         else:
             print("Table created:", table_name)
             self.table = self.create_comment_table(table_name)
- 
