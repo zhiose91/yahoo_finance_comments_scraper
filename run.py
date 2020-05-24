@@ -6,7 +6,6 @@ from dynamodb_utils import Comment_loader
 CONFIGS = {
     "csv_output_folder"       :   r"Saved_comments",
     "json_output_folder"      :   r"Saved_comments",
-    "word_cloud_output_folder":   r"Saved_daily_word_clouds",
     "log_output_folder"       :   r"Work_log"
 }
 
