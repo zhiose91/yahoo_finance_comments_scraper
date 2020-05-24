@@ -106,7 +106,6 @@ class YF_comments_scraper:
         self.log(f'Loading config file')
         self.__log_output_folder = check_n_mkdir(configs.get("log_output_folder", "/"))
         self.__csv_output_folder = check_n_mkdir(configs.get("csv_output_folder", "/"))
-        self.__word_cloud_output_folder = check_n_mkdir(configs.get("word_cloud_output_folder", "/"))
         self.__json_output_folder = check_n_mkdir(configs.get("json_output_folder", "/"))
 
 
