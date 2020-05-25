@@ -312,9 +312,9 @@ class YF_comments_scraper:
         if ignore_words: _stopwords.update(ignore_words)
 
         self.list_of_words = [
-            i.lower()
-            for i in wordpunct_tokenize(comments)
-            if i.lower() not in _stopwords and i.isalpha()
+            word.lower()
+            for word in wordpunct_tokenize(comments)
+            if word.lower() not in _stopwords and word.isalpha()
         ]
 
 
@@ -326,6 +326,8 @@ class YF_comments_scraper:
         self.word_counts = list()
         for word, ct in FreqDist(self.list_of_words).items():
             self.word_counts.append([word, ct])
+
+        self.word_counts = sorted(self.word_counts, key=lambda x:x[1], reverse=True)
 
 
     def save_instance_info(self):
