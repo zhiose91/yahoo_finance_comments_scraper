@@ -6,7 +6,6 @@ from dynamodb_utils import Comment_loader
 CONFIGS = {
     "csv_output_folder"       :   r"Saved_comments",
     "json_output_folder"      :   r"Saved_comments",
-    "word_cloud_output_folder":   r"Saved_daily_word_clouds",
     "log_output_folder"       :   r"Work_log"
 }
 
@@ -45,4 +44,4 @@ for ins_title, ins_info in scraper.fetched_instances.items():
         }
     )
 
-    scraper.log(f"Dynamodb-Ops: Valid insertion", mode="sub")
+    scraper.log(f"Dynamodb-Ops: Inserted successfully", mode="sub")
