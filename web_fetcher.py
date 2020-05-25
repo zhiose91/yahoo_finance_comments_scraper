@@ -21,7 +21,6 @@ class YF_comments_scraper:
         self.__fetched_instances = dict()
         self.__log_output_folder = check_n_mkdir("tmp")
         self.__csv_output_folder = check_n_mkdir("tmp")
-        self.__word_cloud_output_folder = check_n_mkdir("tmp")
         self.__json_output_folder = check_n_mkdir("tmp")
         self.__log_file = None
 
@@ -45,14 +44,6 @@ class YF_comments_scraper:
     @csv_output_folder.setter
     def csv_output_folder(self, folder_name: str):
         self.__csv_output_folder = check_n_mkdir(folder_name)
-
-    @property
-    def word_cloud_output_folder(self):
-        return self.__word_cloud_output_folder
-
-    @word_cloud_output_folder.setter
-    def word_cloud_output_folder(self, folder_name: str):
-        self.__word_cloud_output_folder = check_n_mkdir(folder_name)
 
     @property
     def json_output_folder(self):
@@ -206,6 +197,7 @@ class YF_comments_scraper:
             return int(thumb_se.group(0))
         return 0
 
+
     def get_post_time(self, time_stamp_text):
         """Getting the post time and total_minutes from the time_stamp_text"""
 
@@ -261,6 +253,7 @@ class YF_comments_scraper:
                 comment_media = [media.get_attribute("src") for media in comment_media_elems]
 
                 post_time, total_minutes = self.get_post_time(time_stamp_elem.text)
+
                 self.__fetched_comments.append({
                     "UserName"      :      user_elem.text,
                     "PostTime"      :      post_time,
@@ -301,8 +294,10 @@ class YF_comments_scraper:
         self.log(f'Saved as: {self.csv_file_name}', mode="sub")
 
 
-    def get_chunck_of_words(self, ignore_words: list=[]):
-        """Generating chunck of words with no stopwords"""
+    def get_list_of_words(self, ignore_words: list=[]):
+        """Generating list of words with no stopwords"""
+        self.log(f'Getting list of words')
+
         from nltk.tokenize import wordpunct_tokenize
         import nltk
         nltk.download('stopwords')
@@ -312,49 +307,25 @@ class YF_comments_scraper:
 
         # getting set of stopwords
         _stopwords = set(stopwords.words('english'))
-        if ignore_words:
-            _stopwords.update(ignore_words)
-        list_of_words = [i.lower() for i in wordpunct_tokenize(comments)
-            if i.lower() not in _stopwords and i.isalpha()]
+        if ignore_words: _stopwords.update(ignore_words)
 
-        self.words_chunck = " ".join(list_of_words)
-
-
-    def draw_word_cloud(self, wc_show=False):
-        """Generating word cloud using the stored comments"""
-        from wordcloud import WordCloud as wc
-        import matplotlib.pyplot as plt
-
-        self.log(f'Generating word cloud: [{self.ins_title}]')
-
-        wc_graph = wc(
-            max_words=200, background_color="white",
-            collocations = False).generate(self.words_chunck)
-
-        self.wc_plot = plt
-
-        self.wc_plot.figure(figsize=(12,8))
-        self.wc_plot.imshow(wc_graph, interpolation="bilinear")
-        self.wc_plot.title(f"[{self.ins_title}]\n[{self.ins_index}]  [{self.movement}]")
-        self.wc_plot.axis("off")
-        self.wc_plot.tight_layout(pad=1)
-
-        if wc_show:
-            self.wc_plot.show()
+        self.list_of_words = [
+            word.lower()
+            for word in wordpunct_tokenize(comments)
+            if word.lower() not in _stopwords and word.isalpha()
+        ]
 
 
-    def save_word_cloud(self, file_name: str=""):
-        """Save word cloud locally"""
-        if file_name:
-            self.wc_file_name = file_name
-        else:
-            self.wc_file_name = os.path.join(
-                check_n_mkdir(self.__word_cloud_output_folder),
-                f"{self.ins_title} - {self.log_date_str}.JPG"
-            )
+    def get_word_counts(self):
+        """Store word counts for the use of word cloud"""
+        self.log(f'Getting word usage counts')
 
-        self.log(f'Saved word cloud as: {self.wc_file_name}', mode="sub")
-        self.wc_plot.savefig(self.wc_file_name)
+        from nltk import FreqDist
+        self.word_counts = list()
+        for word, ct in FreqDist(self.list_of_words).items():
+            self.word_counts.append([word, ct])
+
+        self.word_counts = sorted(self.word_counts, key=lambda x:x[1], reverse=True)
 
 
     def save_instance_info(self):
@@ -373,6 +344,7 @@ class YF_comments_scraper:
                     "movem_str"     :   self.movement,
                     "movem_perc"    :   decimal.Decimal(self.movem_perc),
                     "movem_val"     :   decimal.Decimal(self.movem_val),
+                    "comments_wd_ct":   self.word_counts,
                     "comments"      :   {
                         "data_cols" : data_cols,
                         "data_vals" : data_vals
@@ -418,6 +390,8 @@ class YF_comments_scraper:
             self.get_stock_info()
             self.get_comment_block_list()
             self.get_comment_info()
+            self.get_list_of_words()
+            self.get_word_counts()
             self.save_instance_info()
         except Exception as e:
             self.log(f'Unexpected Error occurred: {str(e)}')
