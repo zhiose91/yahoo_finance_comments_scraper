@@ -20,7 +20,7 @@ class Comment_loader:
             print("connected using keypairs")
         else:
             self.dynamodb = boto3.resource('dynamodb', region_name='us-east-1', endpoint_url="http://localhost:8000")
-            self.db_client = session.client('dynamodb', region_name='us-east-1', endpoint_url="http://localhost:8000")
+            self.db_client = boto3.client('dynamodb', region_name='us-east-1', endpoint_url="http://localhost:8000")
             print("connected using without keypairs")
 
 
@@ -55,9 +55,9 @@ class Comment_loader:
 
 
     def set_table(self, table_name: str):
-        if table_name in self.db_client.list_tables()["TableNames"]:
-            print("Table found:", table_name)
-            self.table = self.dynamodb.Table(table_name)
-        else:
-            print("Table created:", table_name)
+        if table_name not in self.db_client.list_tables()["TableNames"]:
             self.table = self.create_comment_table(table_name)
+            print("Table created:", table_name)
+
+        self.table = self.dynamodb.Table(table_name)
+        print("Table found:", table_name)
