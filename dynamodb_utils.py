@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
 
 
 class Comment_loader:
