@@ -44,4 +44,4 @@ for ins_title, ins_info in scraper.fetched_instances.items():
         }
     )
 
-    scraper.log(f"Dynamodb-Ops: Valid insertion", mode="sub")
+    scraper.log(f"Dynamodb-Ops: Inserted successfully", mode="sub")
