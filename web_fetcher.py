@@ -106,7 +106,6 @@ class YF_comments_scraper:
         self.log(f'Loading config file')
         self.__log_output_folder = check_n_mkdir(configs.get("log_output_folder", "/"))
         self.__csv_output_folder = check_n_mkdir(configs.get("csv_output_folder", "/"))
-        self.__word_cloud_output_folder = check_n_mkdir(configs.get("word_cloud_output_folder", "/"))
         self.__json_output_folder = check_n_mkdir(configs.get("json_output_folder", "/"))
 
 
@@ -369,15 +368,6 @@ class YF_comments_scraper:
         self.log(f'Saved fetched instances info as: {self.instance_json_file_name}', mode="sub")
         with open(self.instance_json_file_name, "w") as w_f:
             json.dump(self.__fetched_instances, w_f, indent=4, cls=DecimalEncoder)
-
-
-    def sync_outputs(self):
-
-        self.log(f'Sync S3: {self.wc_file_name}', mode="main")
-        os.system("aws s3 sync /home/ec2-user/web_fetcher/Saved_daily_word_clouds s3://pythonic-monkey-media/Saved_daily_word_clouds")
-
-        self.log(f'Sync S3: {self.csv_file_name}', mode="main")
-        os.system("aws s3 sync /home/ec2-user/web_fetcher/Saved_comments s3://pythonic-monkey-media/Saved_comments")
 
 
     def fetch_comments(self, instance_name, link):
