@@ -296,8 +296,10 @@ class YF_comments_scraper:
         self.log(f'Saved as: {self.csv_file_name}', mode="sub")
 
 
-    def get_chunck_of_words(self, ignore_words: list=[]):
-        """Generating chunck of words with no stopwords"""
+    def get_list_of_words(self, ignore_words: list=[]):
+        """Generating list of words with no stopwords"""
+        self.log(f'Getting list of words')
+
         from nltk.tokenize import wordpunct_tokenize
         import nltk
         nltk.download('stopwords')
@@ -307,12 +309,23 @@ class YF_comments_scraper:
 
         # getting set of stopwords
         _stopwords = set(stopwords.words('english'))
-        if ignore_words:
-            _stopwords.update(ignore_words)
-        list_of_words = [i.lower() for i in wordpunct_tokenize(comments)
-            if i.lower() not in _stopwords and i.isalpha()]
+        if ignore_words: _stopwords.update(ignore_words)
 
-        self.words_chunck = " ".join(list_of_words)
+        self.list_of_words = [
+            i.lower()
+            for i in wordpunct_tokenize(comments)
+            if i.lower() not in _stopwords and i.isalpha()
+        ]
+
+
+    def get_word_counts(self):
+        """Store word counts for the use of word cloud"""
+        self.log(f'Getting word usage counts')
+
+        from nltk import FreqDist
+        self.word_counts = list()
+        for word, ct in FreqDist(self.list_of_words).items():
+            self.word_counts.append([word, ct])
 
 
     def save_instance_info(self):
@@ -331,6 +344,7 @@ class YF_comments_scraper:
                     "movem_str"     :   self.movement,
                     "movem_perc"    :   decimal.Decimal(self.movem_perc),
                     "movem_val"     :   decimal.Decimal(self.movem_val),
+                    "comments_wd_ct":   self.word_counts,
                     "comments"      :   {
                         "data_cols" : data_cols,
                         "data_vals" : data_vals
@@ -367,6 +381,8 @@ class YF_comments_scraper:
             self.get_stock_info()
             self.get_comment_block_list()
             self.get_comment_info()
+            self.get_list_of_words()
+            self.get_word_counts()
             self.save_instance_info()
         except Exception as e:
             self.log(f'Unexpected Error occurred: {str(e)}')
