@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from web_fetcher import YF_comments_scraper
-from dynamodb_utils import Comment_loader
+from src.dynamodb_utils import Comment_loader
 
 
 CONFIGS = {
