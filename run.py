@@ -6,7 +6,6 @@ from src.dynamodb_utils import Comment_loader
 CONFIGS = {
     "csv_output_folder"       :   r"/home/ec2-user/web_fetcher/Saved_comments",
     "json_output_folder"      :   r"/home/ec2-user/web_fetcher/Saved_comments",
-    "word_cloud_output_folder":   r"/home/ec2-user/web_fetcher/Saved_daily_word_clouds",
     "log_output_folder"       :   r"/home/ec2-user/web_fetcher/Work_log"
 }
 
