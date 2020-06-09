@@ -1,4 +1,4 @@
-def download_driver():
+def win_download_driver():
     """Downloading chromedriver.exe with corresponding version"""
     import requests
     from contextlib import closing
