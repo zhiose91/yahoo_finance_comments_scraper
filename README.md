@@ -42,21 +42,24 @@ Requirements
 ```
 Python 3.6 and up
 ```
-Core Module
+
+Core Modules
 ```
 selenium==3.141.0
+requests==2.23.0
 nltk==3.5
 ```
-Optional Module
+
+Optional Modules
 ```
 boto3==1.13.16
 ```
 
-
-Additional Modules
+Additional Files
 ```
 chromedriver
 ```
+
 The script will auto download for
 [Windows](https://chromedriver.chromium.org/downloads)
 &
@@ -81,7 +84,7 @@ Modifying **`SITES`** variable in run.py for custom Yahoo Finance Page -
 from web_fetcher import YF_comments_scraper
 
 analyzer = YF_comments_analyzer()
-scraper.fetch_comments(instance_name="Sample", link="https://") # Use the link for the conversation page
+scraper.fetch_comments(link="https://", instance_name="Sample") # Use the link for the conversation page
 comments = scraper.fetched_comments # Get the fetched comments stored in list object
 
 scraper.save_fetched_comments(file_name="//") # Save the fetched tab delimited comments locally
