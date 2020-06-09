@@ -12,7 +12,7 @@ import os
 import re
 
 
-class YF_comments_scraper:
+class CommentsScraper:
 
     def __init__(self, configs=None):
 

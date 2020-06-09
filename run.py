@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from web_fetcher import YF_comments_scraper
+from web_scrapers import CommentsScraper
 from src.aws_utils import DynamodbCommentsLoader
 
 
@@ -14,7 +14,7 @@ SITES = [
 ]
 
 
-scraper = YF_comments_scraper()
+scraper = CommentsScraper()
 for instance_name, link in SITES:
     scraper.fetch_comments(link=link, instance_name=instance_name)
 
