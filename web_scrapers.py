@@ -17,27 +17,32 @@ class CommentsScraper:
     def __init__(self, configs=None):
 
         """"Getting xp_elems and soup_elems for json folder"""
+        # log variables
         self.log_datetime = datetime.now()
         self.log_date_str = datetime.now().strftime('%Y-%m-%d')
-        self.__fetched_instances = dict()
+        self.__log_file = None
+
+        # default output folders
         self.__log_output_folder = ""
         self.__csv_output_folder = ""
         self.__json_output_folder = ""
 
-        # initialing variables
-        self.__log_file = None
+        # driver variables
         self.driver = None
-        self.xp_elems = None
         self.options = None
+
+        # instance info variables
+        self.xp_elems = None
         self.ins_title = None
         self.ins_index = None
         self.movement = None
         self.movem_val = None
         self.movem_perc = None
-        self.comment_block_elem_list = None
-        self.__fetched_comments = None
         self.list_of_words = None
         self.word_counts = None
+        self.comment_block_elem_list = None
+        self.__fetched_comments = None
+        self.__fetched_instances = dict()
 
         # set config
         if configs:
@@ -340,26 +345,27 @@ class CommentsScraper:
         """Save instance information and push it to instances dict"""
         import decimal
 
+        self.log(f'Generating instance [{self.ins_title}]')
         if self.fetched_comments:
-            self.log(f'Generating instance [{self.ins_title}]')
             data_cols = list(self.fetched_comments[0].keys())
             data_vals = [list(c.values()) for c in self.fetched_comments]
-            self.__fetched_instances.update({
-                self.ins_title: {
-                    "ins_title"      : self.ins_title,
-                    "ins_index"      : decimal.Decimal(self.ins_index),
-                    "fetched_date"   : self.log_date_str,
-                    "num_of_comments": len(self.fetched_comments),
-                    "movem_str"      : self.movement,
-                    "movem_perc"     : decimal.Decimal(self.movem_perc),
-                    "movem_val"      : decimal.Decimal(self.movem_val),
-                    "comments_wd_ct" : self.word_counts,
-                    "comments": {
-                        "data_cols"  : data_cols,
-                        "data_vals"  : data_vals
-                    }
-                }
-            })
+        else:
+            data_cols = list()
+            data_vals = list()
+
+        self.__fetched_instances.update({
+            self.ins_title: {
+                "ins_title"      : self.ins_title,
+                "ins_index"      : decimal.Decimal(self.ins_index),
+                "fetched_date"   : self.log_date_str,
+                "num_of_comments": len(self.fetched_comments),
+                "movem_str"      : self.movement,
+                "movem_perc"     : decimal.Decimal(self.movem_perc),
+                "movem_val"      : decimal.Decimal(self.movem_val),
+                "comments_wd_ct" : self.word_counts,
+                "comments"       : {"data_cols"  : data_cols, "data_vals"  : data_vals}
+            }
+        })
 
     def dump_instance_json(self, file_name: str = ""):
         """Save fetched instances info in json file"""
@@ -404,3 +410,38 @@ class CommentsScraper:
                 return self.fetched_comments
             except AttributeError:
                 return list()
+
+
+class CommentsScraperBinary(CommentsScraper):
+    # For AWS deployment
+    # 21buttons' github repository: https://github.com/21buttons/pychromeless
+    # Setting up a Selenium web scraper on AWS Lambda with Python (ROBERTO ROCHA):
+    # https://robertorocha.info/setting-up-a-selenium-web-scraper-on-aws-lambda-with-python/
+
+    def set_up_driver_options(self):
+        """Setting options for the driver, ignore browser UI an logging"""
+        self.log(f'Setting driver options')
+        self.options = webdriver.ChromeOptions()
+        self.options.add_argument('--headless')
+        self.options.add_argument('--no-sandbox')
+        self.options.add_argument('--disable-gpu')
+        self.options.add_argument('--window-size=1280x1696')
+        self.options.add_argument('--user-data-dir=/tmp/user-data')
+        self.options.add_argument('--hide-scrollbars')
+        self.options.add_argument('--enable-logging')
+        self.options.add_argument('--log-level=0')
+        self.options.add_argument('--v=99')
+        self.options.add_argument('--single-process')
+        self.options.add_argument('--data-path=/tmp/data-path')
+        self.options.add_argument('--ignore-certificate-errors')
+        self.options.add_argument('--homedir=/tmp')
+        self.options.add_argument('--disk-cache-dir=/tmp/cache-dir')
+        self.options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36')
+        self.options.binary_location = os.getcwd() + "/bin/headless-chromium"
+
+    def driver_get_link(self, link: str):
+        """Launching the driver with options and loading assigned link"""
+
+        self.log(f'Opening: {link}')
+        self.driver = webdriver.Chrome(chrome_options=self.options)
+        self.driver.get(link)
