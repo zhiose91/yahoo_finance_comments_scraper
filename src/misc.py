@@ -18,19 +18,24 @@ def sp_translate(text: str):
     return text.encode('ascii', 'ignore').decode('ascii')
 
 
-def check_n_mkdir(dir: str):
+def check_n_mkdir(directory: str):
     import os
-    dir = dir.replace("\\", "/")
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    return dir
+    if directory:
+        directory = directory.replace("\\", "/")
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        return directory
+    else:
+        return ""
 
-class Comment_word_cloud_generator:
+
+class WordCloudGenerator:
 
     def __init__(self):
-        self.__word_cloud_output_folder = check_n_mkdir("tmp")
+        self.__word_cloud_output_folder = ""
+        self.wc_plot = None
 
-    def draw_word_cloud(self, words_chunck:str, wc_show=False):
+    def draw_word_cloud(self, words_chunck: str, wc_show=False):
         """Generating word cloud using the stored comments"""
         from wordcloud import WordCloud as wc
         import matplotlib.pyplot as plt
@@ -49,7 +54,6 @@ class Comment_word_cloud_generator:
         if wc_show:
             self.wc_plot.show()
 
-
-    def save_word_cloud(self, file_name: str=""):
+    def save_word_cloud(self, file_name: str = ""):
         """Save word cloud locally"""
         self.wc_plot.savefig(file_name)
