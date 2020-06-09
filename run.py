@@ -1,34 +1,26 @@
 #!/usr/bin/env python3
 from web_fetcher import YF_comments_scraper
-from src.dynamodb_utils import Comment_loader
+from src.aws_utils import DynamodbCommentsLoader
 
-
-CONFIGS = {
-    "csv_output_folder"       :   r"Saved_comments",
-    "json_output_folder"      :   r"Saved_comments",
-    "log_output_folder"       :   r"Work_log"
-}
 
 SITES = [
     ("SP500", "https://finance.yahoo.com/quote/%5EGSPC/community?p=%5EGSPC"),
-    # ("DowJones", "https://finance.yahoo.com/quote/%5EDJI/community?p=%5EDJI"),
-    # ("Facebook", "https://finance.yahoo.com/quote/FB/community?p=FB"),
-    # ("Amazon", "https://finance.yahoo.com/quote/AMZN/community?p=AMZN"),
-    # ("Apple", "https://finance.yahoo.com/quote/AAPL/community?p=AAPL"),
-    # ("Netflix", "https://finance.yahoo.com/quote/NFLX/community?p=NFLX"),
-    # ("Google", "https://finance.yahoo.com/quote/GOOG/community?p=GOOG"),
+    ("DowJones", "https://finance.yahoo.com/quote/%5EDJI/community?p=%5EDJI"),
+    ("Facebook", "https://finance.yahoo.com/quote/FB/community?p=FB"),
+    ("Amazon", "https://finance.yahoo.com/quote/AMZN/community?p=AMZN"),
+    ("Apple", "https://finance.yahoo.com/quote/AAPL/community?p=AAPL"),
+    ("Netflix", "https://finance.yahoo.com/quote/NFLX/community?p=NFLX"),
+    ("Google", "https://finance.yahoo.com/quote/GOOG/community?p=GOOG"),
 ]
 
 
-scraper = YF_comments_scraper(configs=CONFIGS)
+scraper = YF_comments_scraper()
 for instance_name, link in SITES:
-    scraper.fetch_comments(instance_name, link)
-scraper.dump_instance_json()
+    scraper.fetch_comments(link=link, instance_name=instance_name)
 
-loader = Comment_loader()
-loader.connect_to_db("Test", "Test")
-# loader.connect_to_db()
-loader.set_table("Yahoo_fin_comment")
+loader = DynamodbCommentsLoader()
+loader.connect("dynamodb")
+loader.set_table("Yahoo_Fin_Comments")
 
 for ins_title, ins_info in scraper.fetched_instances.items():
     scraper.log(
