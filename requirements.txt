@@ -1,4 +1,5 @@
-selenium==3.141.0
+selenium==3.14.0
+chromedriver-binary==2.37.0
 boto3==1.13.16
-requests==2.23.0
 nltk==3.5
+requests==2.23.0
