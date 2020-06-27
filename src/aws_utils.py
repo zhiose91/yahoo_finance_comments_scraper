@@ -4,6 +4,9 @@ import botocore
 import os
 from tqdm import tqdm
 
+
+AWS_DEFAULT_KEY_ID = "SOME_ACCESS_KEY_ID"
+AWS_DEFAULT_ACCESS_KEY = "SOME_SECRET_ACCESS_KEY"
 SYSTEM_VAR_MESSAGE = "Obtain credentials from system varaiables"
 CONNECT_PARAMETERS = """
 ================================================================================
@@ -17,15 +20,23 @@ aws_secret_access_key: str="" # default to use env var if this is not provided
 
 class AWSUtils:
 
-    def __init__(self, key_id_env_key: str = "AWS_ACCESS_KEY_ID",
-                 access_key_env_key: str = "AWS_SECRET_ACCESS_KEY"):
+    def __init__(self, get_envir_key: bool=False):
         self.resource = None
         self.client = None
+        self.aws_access_key_id = None
+        self.aws_secret_access_key = None
+        if get_envir_key:
+            self.get_envir_key()
 
+    def get_envir_key(self, key_id_env_key: str = "AWS_ACCESS_KEY_ID",
+            access_key_env_key: str = "AWS_SECRET_ACCESS_KEY"):
         print(f'Fetching env vars: [{key_id_env_key}] [{access_key_env_key}]')
+        aws_access_key_id = os.environ.get(key_id_env_key)
+        aws_secret_access_key = os.environ.get(access_key_env_key)
 
-        self.aws_access_key_id = os.environ.get(key_id_env_key)
-        self.aws_secret_access_key = os.environ.get(access_key_env_key)
+        if aws_access_key_id == AWS_DEFAULT_KEY_ID \
+                or aws_secret_access_key == AWS_DEFAULT_ACCESS_KEY:
+            self.aws_access_key_id = self.aws_secret_access_key = None
 
         if self.aws_access_key_id and self.aws_secret_access_key:
             print(f'Succeeded: {SYSTEM_VAR_MESSAGE}')
@@ -46,6 +57,9 @@ class AWSUtils:
                 aws_access_key_id=aws_access_key_id,
                 aws_secret_access_key=aws_secret_access_key
             )
+            self.aws_access_key_id = aws_access_key_id
+            self.aws_secret_access_key = aws_secret_access_key
+
             self.resource = session.resource(service, region_name=region_name)
             self.client = session.client(service, region_name=region_name)
             print("connected using provided keypairs")
