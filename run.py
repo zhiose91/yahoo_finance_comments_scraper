@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
+import pprint
+import logging
 from web_scrapers import CommentsScraper
-from src.aws_utils import DynamodbCommentsLoader
+
+
+logging.basicConfig(
+    format='%(asctime)s %(name)s %(levelname)s: %(message)s',
+    level=logging.INFO,
+    datefmt='%H:%M:%S'
+)
 
 
 SITES = [
@@ -13,27 +21,18 @@ SITES = [
     ("Google", "https://finance.yahoo.com/quote/GOOG/community?p=GOOG"),
 ]
 
+pp = pprint.PrettyPrinter(indent=4)
 
 scraper = CommentsScraper()
 for instance_name, link in SITES:
     scraper.fetch_comments(link=link, instance_name=instance_name)
 
-loader = DynamodbCommentsLoader()
-loader.connect("dynamodb")
-loader.set_table("Yahoo_Fin_Comments")
-
 for ins_title, ins_info in scraper.fetched_instances.items():
-    scraper.log(
-        f"Dynamodb-Ops: Inserting pKey:[{ins_title}] sKey:[{ins_info['fetched_date']}]",
-        mode="main"
+    print(ins_title)
+    pp.pprint(ins_info["meta"])
+    pp.pprint(
+        dict(zip(
+            ins_info["comments"]["header"],
+            ins_info["comments"]["rows"][0]
+        ))
     )
-
-    loader.table.put_item(
-        Item={
-            "instance_name" : ins_info["ins_title"],
-            "fetched_date"  : ins_info["fetched_date"],
-            "fetch_info"    : ins_info
-        }
-    )
-
-    scraper.log(f"Dynamodb-Ops: Inserted successfully", mode="sub")

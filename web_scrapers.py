@@ -11,22 +11,23 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime, timedelta
-from src.misc import check_n_mkdir, Logger
+from src.misc import check_n_mkdir
 from collections import defaultdict
+import logging
 import time
 import re
 
 
 class CommentsScraper:
 
+    logger = None
+
     def __init__(self):
 
         """"Getting xp_elems and soup_elems for json folder"""
         # log variables
-        self.log_datetime = datetime.now()
         self.log_date_str = datetime.now().strftime('%Y-%m-%d')
-        self.logger = Logger()
-
+        self.logger = logging.getLogger("CommentsScraper")
         # default output folders
 
         # driver variables
@@ -60,13 +61,13 @@ class CommentsScraper:
         return self.__fetched_instances
 
     def load_xp_elems(self):
-        self.logger.log(f'Loading XP_ELEMS')
+        self.logger.info(f'Loading XP_ELEMS')
         from src.xp_elems import XP_ELEMS
         self.xp_elems = XP_ELEMS
 
     def set_up_driver_options(self):
         """Setting options for the driver, ignore browser UI an logging"""
-        self.logger.log(f'Setting driver options')
+        self.logger.info(f'Setting driver options')
         self.options = webdriver.ChromeOptions()
         self.options.add_argument('--ignore-certificate-errors')
         self.options.add_argument('--ignore-ssl-errors')
@@ -78,7 +79,7 @@ class CommentsScraper:
         """Launching the driver with options and loading assigned link"""
         from selenium.common.exceptions import WebDriverException
 
-        self.logger.log(f'Opening: {link}')
+        self.logger.info(f'Opening: {link}')
         try:
             self.driver = webdriver.Chrome(chrome_options=self.options)
         except WebDriverException:
@@ -110,16 +111,16 @@ class CommentsScraper:
         WebDriverWait(self.driver, 100).until(
             EC.presence_of_element_located((By.XPATH, self.xp_elems["top_react"]))
         )
-        self.logger.log(f'Clicking [Top React]')
+        self.logger.debug(f'Clicking [Top React]')
         self.driver.find_element_by_xpath(self.xp_elems["top_react"]).click()
-        self.logger.log(f'Clicking [Newest]')
+        self.logger.debug(f'Clicking [Newest]')
         self.driver.find_element_by_xpath(self.xp_elems["newest"]).click()
         time.sleep(10)
 
     def driver_load_all(self):
         """Clicking on Show More button to load all the comments within past 24 hrs"""
         from itertools import count
-        self.logger.log(f'Loading comments')
+        self.logger.info(f'Loading comments')
 
         click_num = count(start=1, step=1)
         while not self.driver.find_elements_by_xpath(self.xp_elems["old_time_stamp"]):
@@ -127,28 +128,28 @@ class CommentsScraper:
                 EC.presence_of_element_located((By.XPATH, self.xp_elems["show_more"]))
             )
             self.driver.find_element_by_xpath(self.xp_elems["show_more"]).click()
-            self.logger.log(f'Clicking [More] ({next(click_num)})', mode="sub")
+            self.logger.debug(f'Clicking [More] ({next(click_num)})')
         time.sleep(5)
 
     def get_stock_info(self):
         """Printing stock information including name, index, and movement"""
-        self.logger.log(f'Getting instance information')
+        self.logger.info(f'Getting instance information')
 
         self.ins_title = self.driver.find_element_by_xpath(self.xp_elems["title"]).text
-        self.logger.log(f'Title: {self.ins_title}', mode="sub")
+        self.logger.info(f'Title: {self.ins_title}')
 
         self.ins_index = self.driver.find_element_by_xpath(self.xp_elems["index"]).text.replace(",", "")
-        self.logger.log(f'Index: {self.ins_index}', mode="sub")
+        self.logger.info(f'Index: {self.ins_index}')
 
         self.movement = self.driver.find_element_by_xpath(self.xp_elems["movement"]).text
         movem_temp = self.movement.split(" ")
         self.movem_val = movem_temp[0]
         self.movem_perc = movem_temp[1][1:-2]
-        self.logger.log(f'Movement: {self.movement}', mode="sub")
+        self.logger.info(f'Movement: {self.movement}')
 
     def get_comment_block_list(self):
         """Getting the soup objects for each comment block"""
-        self.logger.log(f'Getting comment block list')
+        self.logger.info(f'Getting comment block list')
         self.comment_block_elem_list = self.driver.find_elements_by_xpath(self.xp_elems["comment_block"])
 
     @classmethod
@@ -185,7 +186,7 @@ class CommentsScraper:
     def get_comment_info(self):
         """Getting all comment information and storing all comments"""
         from src.misc import sp_translate
-        self.logger.log(f'Fetching comments:')
+        self.logger.info(f'Fetching comments:')
 
         self.log_datetime = datetime.now()
         self.__fetched_comments = list()
@@ -229,41 +230,12 @@ class CommentsScraper:
                     "CommentMedia": comment_media
                 })
 
-        self.logger.log(f'Found {len(self.__fetched_comments)} comments:', mode="sub")
-
-    def save_fetched_comments(self, file_name: str = "", delimiter: str = "\t"):
-        """Write fetched comments as text file"""
-        self.logger.log(f'Saving fetched comments CSV:')
-
-        if not self.__fetched_comments:
-            self.logger.log(f'No comments found', mode="sub")
-            return
-
-        if file_name:
-            csv_file_name = file_name
-        else:
-            csv_file_name = os.path.join(
-                check_n_mkdir(self.__csv_output_folder),
-                f'{self.ins_title} - {self.log_date_str}.csv'
-            )
-
-        header = self.__fetched_comments[0].keys()
-
-        with open(csv_file_name, "w", encoding="utf-8") as w_f:
-            w_f.write(f'{delimiter.join(header)}\n')
-            for comment_details in self.__fetched_comments:
-                new_line = delimiter.join([
-                    str(val).replace(delimiter, "")
-                    for val in comment_details.values()
-                ])
-                w_f.write(f'{new_line}\n')
-
-        self.logger.log(f'Saved as: {csv_file_name}', mode="sub")
+        self.logger.info(f'Found {len(self.__fetched_comments)} comments:')
 
     def save_instance_info(self):
         """Save instance information and push it to instances dict"""
 
-        self.logger.log(f'Generating instance [{self.ins_title}]')
+        self.logger.info(f'Generating instance [{self.ins_title}]')
         if self.fetched_comments:
             data_cols = list(self.fetched_comments[0].keys())
             data_vals = [list(c.values()) for c in self.fetched_comments]
@@ -294,7 +266,9 @@ class CommentsScraper:
         self.driver_attempts[link] += 1
         try:
             self.driver_get_link(link)
-            self.logger.log(f'Processing [{instance_name if instance_name else link}]: Attempt[{self.driver_attempts[link]}]')
+            self.logger.info(
+                f'Processing [{instance_name if instance_name else link}]: Attempt[{self.driver_attempts[link]}]'
+            )
             self.driver_select_newest()
             self.driver_load_all()
             self.get_stock_info()
@@ -302,11 +276,11 @@ class CommentsScraper:
             self.get_comment_info()
             self.save_instance_info()
         except Exception as e:
-            self.logger.log(f'Unexpected Error occurred: {str(e)}')
+            self.logger.error(f'Unexpected Error occurred: {str(e)}')
             if self.driver_attempts[link] < max_attempts:
                 self.fetch_comments(link=link, instance_name=instance_name)
             else:
-                self.logger.log(f'Max attempts reached for [{instance_name if instance_name else link}]')
+                self.logger.error(f'Max attempts reached for [{instance_name if instance_name else link}]')
         finally:
             if self.driver:
                 self.driver.quit()
@@ -324,7 +298,7 @@ class CommentsScraperBinary(CommentsScraper):
 
     def set_up_driver_options(self):
         """Setting options for the driver, ignore browser UI an logging"""
-        self.logger.log(f'Setting driver options')
+        self.logger.info(f'Setting driver options')
         self.options = webdriver.ChromeOptions()
         self.options.add_argument('--headless')
         self.options.add_argument('--no-sandbox')
@@ -346,6 +320,6 @@ class CommentsScraperBinary(CommentsScraper):
     def driver_get_link(self, link: str):
         """Launching the driver with options and loading assigned link"""
 
-        self.logger.log(f'Opening: {link}')
+        self.logger.info(f'Opening: {link}')
         self.driver = webdriver.Chrome(chrome_options=self.options)
         self.driver.get(link)
