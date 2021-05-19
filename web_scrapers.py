@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 import sys
+import os
+
+project_folder_path = os.path.dirname(os.path.abspath(__file__))
+if project_folder_path not in sys.path:
+    sys.path.append(project_folder_path)
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -9,13 +14,12 @@ from datetime import datetime, timedelta
 from src.misc import check_n_mkdir, Logger
 from collections import defaultdict
 import time
-import os
 import re
 
 
 class CommentsScraper:
 
-    def __init__(self, configs=None):
+    def __init__(self):
 
         """"Getting xp_elems and soup_elems for json folder"""
         # log variables
@@ -24,8 +28,6 @@ class CommentsScraper:
         self.logger = Logger()
 
         # default output folders
-        self.__csv_output_folder = ""
-        self.__json_output_folder = ""
 
         # driver variables
         self.driver = None
@@ -38,15 +40,9 @@ class CommentsScraper:
         self.movement = None
         self.movem_val = None
         self.movem_perc = None
-        self.list_of_words = None
-        self.word_counts = None
         self.comment_block_elem_list = None
         self.__fetched_comments = None
         self.__fetched_instances = dict()
-
-        # set config
-        if configs:
-            self.load_config(configs)
 
         # set driver driver settings
         self.load_xp_elems()
@@ -54,22 +50,6 @@ class CommentsScraper:
 
         # attempt counter:
         self.driver_attempts = defaultdict(int)
-
-    @property
-    def csv_output_folder(self):
-        return self.__csv_output_folder
-
-    @csv_output_folder.setter
-    def csv_output_folder(self, folder_name: str):
-        self.__csv_output_folder = check_n_mkdir(folder_name)
-
-    @property
-    def json_output_folder(self):
-        return self.__json_output_folder
-
-    @json_output_folder.setter
-    def json_output_folder(self, folder_name: str):
-        self.__json_output_folder = check_n_mkdir(folder_name)
 
     @property
     def fetched_comments(self):
@@ -83,13 +63,6 @@ class CommentsScraper:
         self.logger.log(f'Loading XP_ELEMS')
         from src.xp_elems import XP_ELEMS
         self.xp_elems = XP_ELEMS
-
-    def load_config(self, configs: dict):
-        """"Loading config file"""
-
-        self.logger.log(f'Loading config file')
-        self.__csv_output_folder = check_n_mkdir(configs.get("csv_output_folder", "/"))
-        self.__json_output_folder = check_n_mkdir(configs.get("json_output_folder", "/"))
 
     def set_up_driver_options(self):
         """Setting options for the driver, ignore browser UI an logging"""
@@ -287,40 +260,8 @@ class CommentsScraper:
 
         self.logger.log(f'Saved as: {csv_file_name}', mode="sub")
 
-    def get_list_of_words(self, skip_words=None):
-        """Generating list of words with no stopwords"""
-        if skip_words is None:
-            skip_words = []
-        self.logger.log(f'Getting list of words')
-
-        from nltk.tokenize import wordpunct_tokenize
-        from src.stopwords import english_stopwords as _stopwords
-
-        comments = " ".join([x["CommentText"] for x in self.__fetched_comments])
-
-        # getting set of stopwords
-        if skip_words: _stopwords.update(skip_words)
-
-        self.list_of_words = [
-            word.lower()
-            for word in wordpunct_tokenize(comments)
-            if word.lower() not in _stopwords and word.isalpha()
-        ]
-
-    def get_word_counts(self):
-        """Store word counts for the use of word cloud"""
-        self.logger.log(f'Getting word usage counts')
-
-        from nltk import FreqDist
-        self.word_counts = list()
-        for word, ct in FreqDist(self.list_of_words).items():
-            self.word_counts.append([word, ct])
-
-        self.word_counts = sorted(self.word_counts, key=lambda x: x[1], reverse=True)
-
     def save_instance_info(self):
         """Save instance information and push it to instances dict"""
-        import decimal
 
         self.logger.log(f'Generating instance [{self.ins_title}]')
         if self.fetched_comments:
@@ -332,34 +273,21 @@ class CommentsScraper:
 
         self.__fetched_instances.update({
             self.ins_title: {
-                "ins_title"      : self.ins_title,
-                "ins_index"      : decimal.Decimal(self.ins_index),
-                "fetched_date"   : self.log_date_str,
-                "num_of_comments": len(self.fetched_comments),
-                "movem_str"      : self.movement,
-                "movem_perc"     : decimal.Decimal(self.movem_perc),
-                "movem_val"      : decimal.Decimal(self.movem_val),
-                "comments_wd_ct" : self.word_counts,
-                "comments"       : {"data_cols": data_cols, "data_vals": data_vals}
+                "meta": {
+                    "title": self.ins_title,
+                    "index": str(self.ins_index),
+                    "date" : self.log_date_str,
+                    "movement": {
+                        "percentage": str(self.movem_perc),
+                        "value": str(self.movem_val)
+                    }
+                },
+                "comments": {
+                    "header": data_cols,
+                    "rows": data_vals
+                }
             }
         })
-
-    def dump_instance_json(self, file_name: str = ""):
-        """Save fetched instances info in json file"""
-        import json
-        from src.misc import DecimalEncoder
-
-        if file_name:
-            instance_json_file_name = file_name
-        else:
-            instance_json_file_name = os.path.join(
-                check_n_mkdir(self.__json_output_folder),
-                f"{self.log_date_str}.json"
-            )
-
-        self.logger.log(f'Saved fetched instances info as: {instance_json_file_name}', mode="sub")
-        with open(instance_json_file_name, "w") as w_f:
-            json.dump(self.__fetched_instances, w_f, indent=4, cls=DecimalEncoder)
 
     def fetch_comments(self, link: str, instance_name=None, max_attempts: int = 3):
         """Getting comments from the target site"""
@@ -372,8 +300,6 @@ class CommentsScraper:
             self.get_stock_info()
             self.get_comment_block_list()
             self.get_comment_info()
-            self.get_list_of_words()
-            self.get_word_counts()
             self.save_instance_info()
         except Exception as e:
             self.logger.log(f'Unexpected Error occurred: {str(e)}')

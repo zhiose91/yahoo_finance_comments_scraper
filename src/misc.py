@@ -1,6 +1,5 @@
 # misc
-import json
-import decimal
+import re
 from datetime import datetime
 
 
@@ -28,22 +27,12 @@ class Logger:
 
         log_message = f'{self.current_datetime()} {pre_fix}{log_text}'
         print(log_message)
-        if self.__log_file: self.__log_file.write(f'{log_message}\n')
+        if self.__log_file:
+            self.__log_file.write(f'{log_message}\n')
 
     def log_close(self):
         self.__log_file.write("\n")
         self.__log_file.close()
-
-
-# Helper class to convert a DynamoDB item to JSON.
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, decimal.Decimal):
-            if abs(o) % 1 > 0:
-                return float(o)
-            else:
-                return int(o)
-        return super(DecimalEncoder, self).default(o)
 
 
 def sp_translate(text: str):
@@ -62,8 +51,7 @@ def check_n_mkdir(directory: str):
 
 
 def is_valid_yahoo_finance_link(link: str):
-    import re
-    return re.match(r"(https://|)finance\.yahoo\.com/quote/.*/community\?p=.*" ,link)
+    return re.match(r"(https://|)finance\.yahoo\.com/quote/.*/community\?p=.*", link)
 
 
 class WordCloudGenerator:
@@ -79,18 +67,18 @@ class WordCloudGenerator:
 
         wc_graph = wc(
             max_words=200, background_color="white",
-            collocations = False).generate(words_chunck)
+            collocations=False
+        ).generate(words_chunck)
 
         self.wc_plot = plt
 
-        self.wc_plot.figure(figsize=(12,8))
+        self.wc_plot.figure(figsize=(12, 8))
         self.wc_plot.imshow(wc_graph, interpolation="bilinear")
         self.wc_plot.axis("off")
         self.wc_plot.tight_layout(pad=1)
 
         if wc_show:
             self.wc_plot.show()
-
 
     def save_word_cloud(self, file_name: str = ""):
         """Save word cloud locally"""
