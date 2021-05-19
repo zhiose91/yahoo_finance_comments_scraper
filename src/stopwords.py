@@ -1,4 +1,4 @@
-english_stopwords =  {
+english_stopwords = {
     "a",
     "about",
     "above",

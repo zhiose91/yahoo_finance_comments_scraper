@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -108,9 +109,25 @@ class CommentsScraper:
         try:
             self.driver = webdriver.Chrome(chrome_options=self.options)
         except WebDriverException:
-            from src.chrome_utils import win_download_driver
-            win_download_driver()
-            self.driver = webdriver.Chrome(chrome_options=self.options)
+            if sys.platform == "win32":
+                driver_name = "chromedriver.exe"
+            else:
+                driver_name = "chromedriver"
+
+            tmp_driver_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "tmp",
+                driver_name
+            )
+
+            if not os.path.isfile(tmp_driver_path):
+                from src.chrome_utils import download_driver
+                tmp_driver_path = download_driver(file=__file__)
+
+            self.driver = webdriver.Chrome(
+                chrome_options=self.options,
+                executable_path=tmp_driver_path
+            )
 
         self.driver.get(link)
 
@@ -159,8 +176,6 @@ class CommentsScraper:
     def get_comment_block_list(self):
         """Getting the soup objects for each comment block"""
         self.logger.log(f'Getting comment block list')
-
-        comment_list_ele = self.driver.find_element_by_xpath(self.xp_elems["comment_list"])
         self.comment_block_elem_list = self.driver.find_elements_by_xpath(self.xp_elems["comment_block"])
 
     @classmethod
@@ -325,7 +340,7 @@ class CommentsScraper:
                 "movem_perc"     : decimal.Decimal(self.movem_perc),
                 "movem_val"      : decimal.Decimal(self.movem_val),
                 "comments_wd_ct" : self.word_counts,
-                "comments"       : {"data_cols"  : data_cols, "data_vals"  : data_vals}
+                "comments"       : {"data_cols": data_cols, "data_vals": data_vals}
             }
         })
 
@@ -367,7 +382,8 @@ class CommentsScraper:
             else:
                 self.logger.log(f'Max attempts reached for [{instance_name if instance_name else link}]')
         finally:
-            if self.driver: self.driver.quit()
+            if self.driver:
+                self.driver.quit()
             try:
                 return self.fetched_comments
             except AttributeError:
